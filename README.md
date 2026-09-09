@@ -16,7 +16,7 @@ A simple, lightweight application designed to help people manage their time with
 
 ## Team
 
-- Kevin Bezerra
+- Kevin Bezerra - "Man's mind, once stretched by a new idea, never regains its original dimensions" - Oliver Wendell Holmes.
 - Hania Yamilet Flores Perez
 - Jordan Erick Larcher
 - Cristian Gabriel Santiago Miranda
