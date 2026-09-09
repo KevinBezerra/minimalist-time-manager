@@ -19,6 +19,6 @@ A simple, lightweight application designed to help people manage their time with
 - Kevin Bezerra - "Man's mind, once stretched by a new idea, never regains its original dimensions" - Oliver Wendell Holmes.
 - Hania Yamilet Flores Perez "Train like you've never won, compete like you've never lost." - Eileen Gu
 - Jordan Erick Larcher
-- Cristian Gabriel Santiago Miranda
+- Cristian Gabriel Santiago Miranda - "Time makes everything easier" - Myself
 
 **Synchronous Meeting Time:** Wednesday at 22:00 UTC
