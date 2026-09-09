@@ -17,7 +17,7 @@ A simple, lightweight application designed to help people manage their time with
 ## Team
 
 - Kevin Bezerra - "Man's mind, once stretched by a new idea, never regains its original dimensions" - Oliver Wendell Holmes.
-- Hania Yamilet Flores Perez
+- Hania Yamilet Flores Perez "Train like you've never won, compete like you've never lost." - Eileen Gu
 - Jordan Erick Larcher
 - Cristian Gabriel Santiago Miranda
 
