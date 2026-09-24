@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import AddTaskForm from "./components/AddTaskForm";
 import TaskList from "./components/TaskList";
-import { createTask, getTasks } from "./services/taskApi";
+import {
+  createTask,
+  getTasks,
+} from "./services/taskApi";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -55,6 +58,17 @@ function App() {
     }
   }
 
+  async function handleDeleteTask(taskId) {
+    try {
+      setTasks((currentTasks) =>
+        currentTasks.filter((task) => task.id !== taskId)
+      );
+    } catch (error) {
+      console.error(error);
+      setError("Could not delete task.");
+    }
+  }
+
   return (
     <main>
       <h1>Task Manager</h1>
@@ -66,7 +80,10 @@ function App() {
       {loading ? (
         <p>Loading tasks...</p>
       ) : (
-        <TaskList tasks={tasks} />
+        <TaskList
+          tasks={tasks}
+          onDeleteTask={handleDeleteTask}
+        />
       )}
     </main>
   );

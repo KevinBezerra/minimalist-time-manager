@@ -25,3 +25,31 @@ export async function createTask(task) {
 
   return response.json();
 }
+
+export async function updateTask(id, updates) {
+  const response = await fetch(`${API_URL}/tasks/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to update task.");
+  }
+
+  return response.json();
+}
+
+export async function deleteTask(id) {
+  const response = await fetch(`${API_URL}/tasks/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to delete task.");
+  }
+
+  return response.json();
+}
