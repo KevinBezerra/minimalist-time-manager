@@ -1,4 +1,6 @@
-function TaskList({ tasks }) {
+import TaskItem from "./TaskItem/TaskItem";
+
+function TaskList({ tasks, onDeleteTask }) {
   if (tasks.length === 0) {
     return <p>No active tasks.</p>;
   }
@@ -9,9 +11,11 @@ function TaskList({ tasks }) {
 
       <ul>
         {tasks.map((task) => (
-          <li key={task.id}>
-            {task.title}
-          </li>
+          <TaskItem
+            key={task.id}
+            task={task}
+            onDeleteTask={onDeleteTask}
+          />
         ))}
       </ul>
     </div>
