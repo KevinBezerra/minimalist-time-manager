@@ -10,6 +10,10 @@ function TaskItem({ task, onDeleteTask }) {
   const [isCompleted, setIsCompleted] = useState(
     task.isCompleted === 1
   );
+  const [isToday, setIsToday] = useState(
+    task.isToday === true || task.isToday === 1
+  );
+  const [period, setPeriod] = useState(task.period || "");
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
 
@@ -22,6 +26,28 @@ function TaskItem({ task, onDeleteTask }) {
       });
 
       setIsCompleted(newValue === 1);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleTodayChange(event) {
+    const nextIsToday = event.target.checked;
+
+    try {
+      await updateTask(task.id, { isToday: nextIsToday });
+      setIsToday(nextIsToday);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handlePeriodChange(event) {
+    const nextPeriod = event.target.value;
+
+    try {
+      await updateTask(task.id, { period: nextPeriod || null });
+      setPeriod(nextPeriod);
     } catch (error) {
       console.error(error);
     }
@@ -81,6 +107,33 @@ function TaskItem({ task, onDeleteTask }) {
           <span className="task-title">{title}</span>
         )}
       </div>
+
+      {isEditing && (
+        <div className="task-scheduling">
+          <label className="task-today-control">
+            <input
+              type="checkbox"
+              checked={isToday}
+              onChange={handleTodayChange}
+            />
+            Today
+          </label>
+
+          {isToday && (
+            <select
+              className="task-period-select"
+              aria-label={`Day part for ${title}`}
+              value={period}
+              onChange={handlePeriodChange}
+            >
+              <option value="" disabled>Select day part</option>
+              <option value="morning">Morning</option>
+              <option value="afternoon">Afternoon</option>
+              <option value="evening">Evening</option>
+            </select>
+          )}
+        </div>
+      )}
 
       <div className="task-actions">
         <button type="button" onClick={handleEdit}>

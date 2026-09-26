@@ -15,6 +15,7 @@ export async function createTask(task) {
     id: Date.now(), // Generate a unique numeric ID
     title: task.title,
     isCompleted: 0,
+    isToday: false,
     period: task.period || null
   };
   
