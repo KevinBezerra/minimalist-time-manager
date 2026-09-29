@@ -76,6 +76,15 @@ function App() {
       )
     );
   }
+  function handleReorderTasks(reorderedTasks, isCompleted) {
+    setTasks((currentTasks) => {
+      const otherTasks = currentTasks.filter(
+        (task) => task.isCompleted !== isCompleted
+      );
+
+      return [...reorderedTasks, ...otherTasks];
+    });
+  }
   return (
     <main>
       <h1>Task Manager</h1>
@@ -92,6 +101,7 @@ function App() {
             tasks={activeTasks}
             onDeleteTask={handleDeleteTask}
             onUpdateTask={handleUpdateTask}
+            onReorderTasks={handleReorderTasks}
             title="Active Tasks"
           />
 
@@ -99,6 +109,7 @@ function App() {
             tasks={completedTasks}
             onDeleteTask={handleDeleteTask}
             onUpdateTask={handleUpdateTask}
+            onReorderTasks={handleReorderTasks}
             title="Completed Tasks"
           />
         </>

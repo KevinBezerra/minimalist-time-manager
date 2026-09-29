@@ -5,11 +5,20 @@ import {
 } from "../../services/taskApi";
 import "./TaskItem.css";
 
-
-function TaskItem({ task, onDeleteTask, onUpdateTask }) {
+function TaskItem({
+  task,
+  onDeleteTask,
+  onUpdateTask,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragging,
+}) {
   const [isCompleted, setIsCompleted] = useState(
     task.isCompleted === 1
   );
+
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
 
@@ -41,12 +50,13 @@ function TaskItem({ task, onDeleteTask, onUpdateTask }) {
     }
 
     try {
-      await updateTask(task.id, {
+      const updatedTask = await updateTask(task.id, {
         title: cleanTitle,
       });
 
       setTitle(cleanTitle);
       setIsEditing(false);
+      onUpdateTask(updatedTask);
     } catch (error) {
       console.error(error);
     }
@@ -62,7 +72,23 @@ function TaskItem({ task, onDeleteTask, onUpdateTask }) {
   }
 
   return (
-    <li className={`task-item ${isCompleted ? "completed" : ""}`}>
+    <li
+      className={`task-item ${isCompleted ? "completed" : ""} ${
+        isDragging ? "dragging" : ""
+      }`}
+      onDragOver={onDragOver}
+      onDrop={() => onDrop(task.id)}
+    >
+      <span
+        className="drag-handle"
+        draggable
+        onDragStart={() => onDragStart(task.id)}
+        onDragEnd={onDragEnd}
+        title="Drag to reorder"
+      >
+        ⠿
+      </span>
+
       <input
         className="task-checkbox"
         type="checkbox"
