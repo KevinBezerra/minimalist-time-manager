@@ -8,6 +8,8 @@ import {
 
 function App() {
   const [tasks, setTasks] = useState([]);
+  const activeTasks = tasks.filter((task) => task.isCompleted === 0);
+  const completedTasks = tasks.filter((task) => task.isCompleted === 1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -17,8 +19,7 @@ function App() {
     getTasks()
       .then((data) => {
         if (isCurrent) {
-          const activeTasks = data.filter((task) => task.isCompleted === 0);
-          setTasks(activeTasks);
+          setTasks(data);
         }
       })
       .catch((error) => {
@@ -68,7 +69,22 @@ function App() {
       setError("Could not delete task.");
     }
   }
+  function handleUpdateTask(updatedTask) {
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task.id === updatedTask.id ? updatedTask : task
+      )
+    );
+  }
+  function handleReorderTasks(reorderedTasks, isCompleted) {
+    setTasks((currentTasks) => {
+      const otherTasks = currentTasks.filter(
+        (task) => task.isCompleted !== isCompleted
+      );
 
+      return [...reorderedTasks, ...otherTasks];
+    });
+  }
   return (
     <main>
       <h1>Task Manager</h1>
@@ -80,10 +96,23 @@ function App() {
       {loading ? (
         <p>Loading tasks...</p>
       ) : (
-        <TaskList
-          tasks={tasks}
-          onDeleteTask={handleDeleteTask}
-        />
+        <>  
+          <TaskList
+            tasks={activeTasks}
+            onDeleteTask={handleDeleteTask}
+            onUpdateTask={handleUpdateTask}
+            onReorderTasks={handleReorderTasks}
+            title="Active Tasks"
+          />
+
+          <TaskList
+            tasks={completedTasks}
+            onDeleteTask={handleDeleteTask}
+            onUpdateTask={handleUpdateTask}
+            onReorderTasks={handleReorderTasks}
+            title="Completed Tasks"
+          />
+        </>
       )}
     </main>
   );
