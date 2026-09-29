@@ -6,7 +6,7 @@ import {
 import "./TaskItem.css";
 
 
-function TaskItem({ task, onDeleteTask }) {
+function TaskItem({ task, onDeleteTask, onUpdateTask }) {
   const [isCompleted, setIsCompleted] = useState(
     task.isCompleted === 1
   );
@@ -17,11 +17,12 @@ function TaskItem({ task, onDeleteTask }) {
     const newValue = isCompleted ? 0 : 1;
 
     try {
-      await updateTask(task.id, {
+      const updatedTask = await updateTask(task.id, {
         isCompleted: newValue,
       });
 
       setIsCompleted(newValue === 1);
+      onUpdateTask(updatedTask);
     } catch (error) {
       console.error(error);
     }
