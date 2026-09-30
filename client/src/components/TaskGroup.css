@@ -1,0 +1,37 @@
+.task-group {
+  margin-bottom: 16px;
+}
+
+.task-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-group-icon {
+  font-size: 16px;
+}
+
+.task-group-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.task-group-chevron {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.task-group-chevron.closed {
+  transform: rotate(180deg);
+}
+
+.task-group-body {
+  padding: 0 16px 8px 16px;
+}

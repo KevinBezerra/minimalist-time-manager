@@ -1,0 +1,14 @@
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-item input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.task-item .completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+}

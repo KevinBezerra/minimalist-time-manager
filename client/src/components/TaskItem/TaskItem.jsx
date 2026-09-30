@@ -5,20 +5,15 @@ import {
 } from "../../services/taskApi";
 import "./TaskItem.css";
 
-function TaskItem({
-  task,
-  onDeleteTask,
-  onUpdateTask,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
-  isDragging,
-}) {
+
+function TaskItem({ task, onDeleteTask }) {
   const [isCompleted, setIsCompleted] = useState(
     task.isCompleted === 1
   );
-
+  const [isToday, setIsToday] = useState(
+    task.isToday === true || task.isToday === 1
+  );
+  const [period, setPeriod] = useState(task.period || "");
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
 
@@ -26,12 +21,33 @@ function TaskItem({
     const newValue = isCompleted ? 0 : 1;
 
     try {
-      const updatedTask = await updateTask(task.id, {
+      await updateTask(task.id, {
         isCompleted: newValue,
       });
 
       setIsCompleted(newValue === 1);
-      onUpdateTask(updatedTask);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleTodayChange(event) {
+    const nextIsToday = event.target.checked;
+
+    try {
+      await updateTask(task.id, { isToday: nextIsToday });
+      setIsToday(nextIsToday);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handlePeriodChange(event) {
+    const nextPeriod = event.target.value;
+
+    try {
+      await updateTask(task.id, { period: nextPeriod || null });
+      setPeriod(nextPeriod);
     } catch (error) {
       console.error(error);
     }
@@ -50,13 +66,12 @@ function TaskItem({
     }
 
     try {
-      const updatedTask = await updateTask(task.id, {
+      await updateTask(task.id, {
         title: cleanTitle,
       });
 
       setTitle(cleanTitle);
       setIsEditing(false);
-      onUpdateTask(updatedTask);
     } catch (error) {
       console.error(error);
     }
@@ -72,29 +87,14 @@ function TaskItem({
   }
 
   return (
-    <li
-      className={`task-item ${isCompleted ? "completed" : ""} ${
-        isDragging ? "dragging" : ""
-      }`}
-      onDragOver={onDragOver}
-      onDrop={() => onDrop(task.id)}
-    >
-      <span
-        className="drag-handle"
-        draggable
-        onDragStart={() => onDragStart(task.id)}
-        onDragEnd={onDragEnd}
-        title="Drag to reorder"
-      >
-        ⠿
-      </span>
-
-      <input
-        className="task-checkbox"
-        type="checkbox"
-        checked={isCompleted}
-        onChange={handleToggle}
-      />
+    <div className={`task-row ${isCompleted ? "completed" : ""}`}>
+      <button
+        className={`task-checkbox ${isCompleted ? "checked" : ""}`}
+        onClick={handleToggle}
+        arial-label="Toggle task"
+        >
+          {isCompleted && <span className="checkMark">✓</span>}
+      </button>
 
       <div className="task-content">
         {isEditing ? (
@@ -108,6 +108,13 @@ function TaskItem({
           <span className="task-title">{title}</span>
         )}
       </div>
+      <span className={`task-badge task-badge-${task.category?.toLowerCase() || "default"}`}>
+        {task.category || "Personal"}
+      </span>
+
+      <span className="task-duration">
+        {task.duration ? `{task.duration} min` : "" }
+      </span>
 
       <div className="task-actions">
         <button type="button" onClick={handleEdit}>
@@ -118,7 +125,7 @@ function TaskItem({
           Delete
         </button>
       </div>
-    </li>
+    </div>
   );
 }
 

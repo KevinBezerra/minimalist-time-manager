@@ -1,56 +1,52 @@
-const API_URL = "http://localhost:5000";
+// Using localStorage fallback as per project plan
+
+const STORAGE_KEY = "tasks";
 
 export async function getTasks() {
-  const response = await fetch(`${API_URL}/tasks`);
-
-  if (!response.ok) {
-    throw new Error("Could not load tasks.");
-  }
-
-  return await response.json();
+  // Read from local storage, default to empty array if nothing exists
+  const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  return tasks;
 }
 
 export async function createTask(task) {
-  const response = await fetch(`${API_URL}/tasks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(task),
-  });
-
-  if (!response.ok) {
-    throw new Error("Could not create task.");
-  }
-
-  return await response.json();
+  const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  
+  const newTask = {
+    id: Date.now(), // Generate a unique numeric ID
+    title: task.title,
+    isCompleted: 0,
+    isToday: false,
+    period: task.period || "morning", // defaults to morning
+    category: task.category || "Personal",
+    duration: task.duration || 30,
+  };
+  
+  tasks.push(newTask);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  
+  return newTask;
 }
 
 export async function updateTask(id, updates) {
-  const response = await fetch(`${API_URL}/tasks/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updates),
+  let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  let updatedTask = null;
+  
+  tasks = tasks.map(t => {
+    if (t.id === id) {
+      updatedTask = { ...t, ...updates };
+      return updatedTask;
+    }
+    return t;
   });
-
-  if (!response.ok) {
-    throw new Error("Could not update task.");
-  }
-
-  const tasks = await getTasks();
-  return tasks.find((task) => task.id === id);
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  return updatedTask;
 }
 
 export async function deleteTask(id) {
-  const response = await fetch(`${API_URL}/tasks/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!response.ok) {
-    throw new Error("Could not delete task.");
-  }
-
-  return await response.json();
+  let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  tasks = tasks.filter(t => t.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  
+  return { message: "Task deleted successfully" };
 }
