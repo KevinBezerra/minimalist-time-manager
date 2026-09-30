@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskItem  from "./TaskItem/TaskItem";
 import "./TaskGroup.css";
 
-function TaskGroup({title, icon, tasks, onDeleteTask }){
+function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTask }){
     const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        if (tasks.length > 0) {
+            setIsOpen(true);
+        }
+    }, [tasks.length]);
 
     function handleToggle(){
         setIsOpen(!isOpen);
@@ -19,9 +25,11 @@ function TaskGroup({title, icon, tasks, onDeleteTask }){
                 <div className="task-group-body">
                     {tasks.map((task) => (
                         <TaskItem
-                            key={task.ide}
+                            key={task.id}
                             task={task}
                             onDeleteTask={onDeleteTask}
+                            onCompleteTask={onCompleteTask}
+                            onUpdateTask={onUpdateTask}
                         />
                     ))}
                 </div>
