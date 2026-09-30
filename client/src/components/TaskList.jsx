@@ -6,10 +6,7 @@ function TaskList({ tasks, onDeleteTask }) {
   }
 
   return (
-    <div>
-      <h2>Active Tasks</h2>
-
-      <ul>
+    <div className="task-list">
         {tasks.map((task) => (
           <TaskItem
             key={task.id}
@@ -17,7 +14,6 @@ function TaskList({ tasks, onDeleteTask }) {
             onDeleteTask={onDeleteTask}
           />
         ))}
-      </ul>
     </div>
   );
 }

@@ -1,0 +1,45 @@
+:root {
+    /*Primary colors*/
+    --navy: #1b3a5c;
+    --navy-dark: #142c46;
+
+    /* Background Color */
+    --bg-app: #f4f6fb;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+
+    /* Text Color */
+    --text-primary: #1b3a5c;
+    --text-secondary: #6c757d;
+    --text-muted: #9aa7b5;
+
+    /* Accents*/
+    --accent-orange: #f4845f;
+    --accent-teal: #4db6ac;
+
+    /*Category badges */
+    --badge-personal-bg: #e0f2f1;
+    --badge-personal-text: #2e7d6b;
+    --badge-work-bg: #fff3e0;
+    --badge-work-text: #e65100;
+    --badge-health-bg: #e8f5e9;
+    --badge-health-text: #2e7d32;
+
+    /* navigation */
+    --nav-active-bg: #e3f2fd;
+    --nav-active-text: #1b3a5c;
+
+    /* Shadows effect */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-button: 0 2px 6px rgba(27, 58, 92,  0.15);
+
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+
+    /* Font */
+    --font-family: 'Nunito Sans', 'Inter', sans-serif;
+}

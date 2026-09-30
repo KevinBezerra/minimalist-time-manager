@@ -87,13 +87,14 @@ function TaskItem({ task, onDeleteTask }) {
   }
 
   return (
-    <li className={`task-item ${isCompleted ? "completed" : ""}`}>
-      <input
-        className="task-checkbox"
-        type="checkbox"
-        checked={isCompleted}
-        onChange={handleToggle}
-      />
+    <div className={`task-row ${isCompleted ? "completed" : ""}`}>
+      <button
+        className={`task-checkbox ${isCompleted ? "checked" : ""}`}
+        onClick={handleToggle}
+        arial-label="Toggle task"
+        >
+          {isCompleted && <span className="checkMark">✓</span>}
+      </button>
 
       <div className="task-content">
         {isEditing ? (
@@ -107,33 +108,13 @@ function TaskItem({ task, onDeleteTask }) {
           <span className="task-title">{title}</span>
         )}
       </div>
+      <span className={`task-badge task-badge-${task.category?.toLowerCase() || "default"}`}>
+        {task.category || "Personal"}
+      </span>
 
-      {isEditing && (
-        <div className="task-scheduling">
-          <label className="task-today-control">
-            <input
-              type="checkbox"
-              checked={isToday}
-              onChange={handleTodayChange}
-            />
-            Today
-          </label>
-
-          {isToday && (
-            <select
-              className="task-period-select"
-              aria-label={`Day part for ${title}`}
-              value={period}
-              onChange={handlePeriodChange}
-            >
-              <option value="" disabled>Select day part</option>
-              <option value="morning">Morning</option>
-              <option value="afternoon">Afternoon</option>
-              <option value="evening">Evening</option>
-            </select>
-          )}
-        </div>
-      )}
+      <span className="task-duration">
+        {task.duration ? `{task.duration} min` : "" }
+      </span>
 
       <div className="task-actions">
         <button type="button" onClick={handleEdit}>
@@ -144,7 +125,7 @@ function TaskItem({ task, onDeleteTask }) {
           Delete
         </button>
       </div>
-    </li>
+    </div>
   );
 }
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import TaskGroup from "./components/TaskGroup";
+import Sidebar from "./components/Sidebar";
 import AddTaskForm from "./components/AddTaskForm";
-import TaskList from "./components/TaskList";
 import {
   createTask,
   getTasks,
 } from "./services/taskApi";
+import "./App.css"
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -44,6 +46,8 @@ function App() {
 
       const newTask = await createTask({
         title: taskInput,
+        category: taskInput.category,
+        duration: taskInput.duration
       });
 
       if (newTask.isCompleted === 0) {
@@ -70,22 +74,49 @@ function App() {
   }
 
   return (
-    <main>
-      <h1>Task Manager</h1>
+    <div className="app-layout">
+      <Sidebar />
+      <main className="app-main">
+        <header className="app-header">
+          <div>
+            <h1 className="app-title">Today</h1>
+            <p className="app-subtitle">Focus on what matters today.</p>
+          </div>
+          <button className="btn-add-task">Add Task</button>
+        </header>
+        <section className="app-content">
+          <AddTaskForm onAddTask={handleAddTask} />
+          {error && <p className="error-text">{error}</p>}
 
-      <AddTaskForm onAddTask={handleAddTask} />
+          {loading ? (
+            <p>Loading tasks...</p>
+          ) : (
+            <div className="today-groups">
+              <TaskGroup
+                title="Morning"
+                icon="☀"
+                tasks={tasks.filter(t => t.period === "morning")}
+                onDeleteTask={handleDeleteTask}
+              />
+              <TaskGroup
+                title="Afternoon"
+                icon="☀"
+                tasks={tasks.filter(t => t.period === "afternoon")}
+                onDeleteTask={handleDeleteTask}
+              />
 
-      {error && <p>{error}</p>}
+              <TaskGroup
+                title="Evening"
+                icon="☾"
+                tasks={tasks.filter(t => t.period === "evening")}
+                onDeleteTask={handleDeleteTask}
+              />
+            </div>
+          )}
+        </section>
 
-      {loading ? (
-        <p>Loading tasks...</p>
-      ) : (
-        <TaskList
-          tasks={tasks}
-          onDeleteTask={handleDeleteTask}
-        />
-      )}
-    </main>
+      </main>
+    </div>
   );
 }
 

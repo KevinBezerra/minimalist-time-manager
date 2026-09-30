@@ -16,7 +16,9 @@ export async function createTask(task) {
     title: task.title,
     isCompleted: 0,
     isToday: false,
-    period: task.period || null
+    period: task.period || "morning", // defaults to morning
+    category: task.category || "Personal",
+    duration: task.duration || 30,
   };
   
   tasks.push(newTask);
