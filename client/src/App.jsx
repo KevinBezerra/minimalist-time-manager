@@ -5,6 +5,7 @@ import AddTaskForm from "./components/AddTaskForm";
 import {
   createTask,
   getTasks,
+  updateTask,
 } from "./services/taskApi";
 import "./App.css"
 
@@ -19,7 +20,14 @@ function App() {
     getTasks()
       .then((data) => {
         if (isCurrent) {
-          const activeTasks = data.filter((task) => task.isCompleted === 0);
+          const activeTasks = data
+            .filter((task) => task.isCompleted === 0)
+            .map((task) => ({
+              ...task,
+              period: ["morning", "afternoon", "evening"].includes(task.period)
+                ? task.period
+                : "morning",
+            }));
           setTasks(activeTasks);
         }
       })
@@ -45,9 +53,10 @@ function App() {
       setError("");
 
       const newTask = await createTask({
-        title: taskInput,
+        title: taskInput.title,
         category: taskInput.category,
-        duration: taskInput.duration
+        duration: taskInput.duration,
+        period: taskInput.period,
       });
 
       if (newTask.isCompleted === 0) {
@@ -55,10 +64,13 @@ function App() {
           ...currentTasks,
           newTask,
         ]);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error(error);
       setError("Could not add task.");
+      return false;
     }
   }
 
@@ -73,6 +85,34 @@ function App() {
     }
   }
 
+  async function handleUpdateTask(taskId, updates) {
+    try {
+      const updatedTask = await updateTask(taskId, updates);
+
+      if (!updatedTask) {
+        return null;
+      }
+
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === taskId ? updatedTask : task
+        )
+      );
+
+      return updatedTask;
+    } catch (error) {
+      console.error(error);
+      setError("Could not update task.");
+      return null;
+    }
+  }
+
+  function handleCompleteTask(taskId) {
+    setTasks((currentTasks) =>
+      currentTasks.filter((task) => task.id !== taskId)
+    );
+  }
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -82,7 +122,6 @@ function App() {
             <h1 className="app-title">Today</h1>
             <p className="app-subtitle">Focus on what matters today.</p>
           </div>
-          <button className="btn-add-task">Add Task</button>
         </header>
         <section className="app-content">
           <AddTaskForm onAddTask={handleAddTask} />
@@ -95,21 +134,26 @@ function App() {
               <TaskGroup
                 title="Morning"
                 icon="☀"
-                tasks={tasks.filter(t => t.period === "morning")}
+                tasks={tasks.filter((task) => task.period === "morning")}
                 onDeleteTask={handleDeleteTask}
+                onCompleteTask={handleCompleteTask}
+                onUpdateTask={handleUpdateTask}
               />
               <TaskGroup
                 title="Afternoon"
                 icon="☀"
-                tasks={tasks.filter(t => t.period === "afternoon")}
+                tasks={tasks.filter((task) => task.period === "afternoon")}
                 onDeleteTask={handleDeleteTask}
+                onCompleteTask={handleCompleteTask}
+                onUpdateTask={handleUpdateTask}
               />
-
               <TaskGroup
                 title="Evening"
                 icon="☾"
-                tasks={tasks.filter(t => t.period === "evening")}
+                tasks={tasks.filter((task) => task.period === "evening")}
                 onDeleteTask={handleDeleteTask}
+                onCompleteTask={handleCompleteTask}
+                onUpdateTask={handleUpdateTask}
               />
             </div>
           )}
