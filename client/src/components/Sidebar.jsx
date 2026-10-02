@@ -27,7 +27,7 @@ export default function Sidebar() {
                     <NavLink 
                     key={item.to} 
                     to={item.to} 
-                    className="nav-item"
+                    className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} 
                     >
                         <span className="nav-icon">{item.icon}</span>
                         <span>{item.label}</span>
