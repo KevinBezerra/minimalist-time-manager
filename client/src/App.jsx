@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
-import TaskGroup from "./components/TaskGroup";
-import Sidebar from "./components/Sidebar";
-import AddTaskForm from "./components/AddTaskForm";
 import {
   createTask,
   getTasks,
   updateTask,
 } from "./services/taskApi";
 import "./App.css"
+import { Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "./layouts/AppLayout";
+import Today from "./pages/Today";
+
+
+function Placeholder({ name }) {
+  return <h1>{name} -- coming soon</h1>
+}
+
+function NotFound() {
+  return <h1>404 - Page Not Found</h1>
+}
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -112,55 +121,33 @@ function App() {
       currentTasks.filter((task) => task.id !== taskId)
     );
   }
-
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <main className="app-main">
-        <header className="app-header">
-          <div>
-            <h1 className="app-title">Today</h1>
-            <p className="app-subtitle">Focus on what matters today.</p>
-          </div>
-        </header>
-        <section className="app-content">
-          <AddTaskForm onAddTask={handleAddTask} />
-          {error && <p className="error-text">{error}</p>}
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route
+          path="/today"
+          element={
+            <Today 
+              tasks={tasks}
+              loading={loading}
+              error={error}
+              onAddTask={handleAddTask}
+              onDeleteTask={handleDeleteTask}
+              onCompleteTask={handleCompleteTask}
+              onUpdateTask={handleUpdateTask}
+            />
+          }>
+        </Route>
+        <Route path="/tasks"      element={<Placeholder name="Tasks" />} />
+        <Route path="/pomodoro"   element={<Placeholder name="Pomodoro" />} />
+        <Route path="/completed"  element={<Placeholder name="Completed" />} />
+        <Route path="/categories" element={<Placeholder name="Categories" />} />
 
-          {loading ? (
-            <p>Loading tasks...</p>
-          ) : (
-            <div className="today-groups">
-              <TaskGroup
-                title="Morning"
-                icon="☀"
-                tasks={tasks.filter((task) => task.period === "morning")}
-                onDeleteTask={handleDeleteTask}
-                onCompleteTask={handleCompleteTask}
-                onUpdateTask={handleUpdateTask}
-              />
-              <TaskGroup
-                title="Afternoon"
-                icon="☀"
-                tasks={tasks.filter((task) => task.period === "afternoon")}
-                onDeleteTask={handleDeleteTask}
-                onCompleteTask={handleCompleteTask}
-                onUpdateTask={handleUpdateTask}
-              />
-              <TaskGroup
-                title="Evening"
-                icon="☾"
-                tasks={tasks.filter((task) => task.period === "evening")}
-                onDeleteTask={handleDeleteTask}
-                onCompleteTask={handleCompleteTask}
-                onUpdateTask={handleUpdateTask}
-              />
-            </div>
-          )}
-        </section>
+        <Route index element={<Navigate to="/today" replace />} />
 
-      </main>
-    </div>
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   );
 }
 

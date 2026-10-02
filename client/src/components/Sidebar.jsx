@@ -1,4 +1,14 @@
 import "./Sidebar.css";
+import { NavLink } from "react-router-dom";
+
+const NAV_ITEMS = [
+    { to: "/today", label: "Today", icon: "🏠" },
+    { to: "/tasks", label: "Tasks", icon: "☰" },
+    { to: "/pomodoro", label: "Pomodoro", icon: "⏱" },
+    { to: "/completed", label: "Completed", icon: "✓" },
+    { to: "/categories", label: "Categories", icon: "🏷" },
+];
+
 export default function Sidebar() {
     return (
         <aside className="sidebar">
@@ -13,26 +23,16 @@ export default function Sidebar() {
 
             </div>            {/* Navigation items */}
             <nav className="sidebar-nav">
-                <a href="#" className="nav-item active">
-                    <span className="nav-icon">🏠</span>
-                    <span>Today</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">☰</span>
-                    <span>Tasks</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">⏱</span>
-                    <span>Pomodoro</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">✓</span>
-                    <span>Completed</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">🏷</span>
-                    <span>Categories</span>
-                </a>
+                {NAV_ITEMS.map((item) => (
+                    <NavLink 
+                    key={item.to} 
+                    to={item.to} 
+                    className="nav-item"
+                    >
+                        <span className="nav-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                    </NavLink>
+                ))}
             </nav>
         </aside>
     );
