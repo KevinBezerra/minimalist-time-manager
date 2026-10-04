@@ -1,39 +1,27 @@
 import { useState } from "react";
-import {
-  deleteTask,
-  updateTask,
-} from "../../services/taskApi";
 import "./TaskItem.css";
 
-
-function TaskItem({ task, onDeleteTask, onCompleteTask, onUpdateTask }) {
-  const [isCompleted, setIsCompleted] = useState(
-    task.isCompleted === 1
-  );
-  const [period, setPeriod] = useState(task.period || "morning");
+// Displays one task. The task itself comes from the shared tasks state (props);
+// only the in-progress edit (draft title and day part) lives here.
+function TaskItem({ task, onDeleteTask, onCompleteTask, onRestoreTask, onUpdateTask }) {
+  const isCompleted = task.isCompleted === 1;
+  const period = task.period || "morning";
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
+  const [draftTitle, setDraftTitle] = useState(task.title);
+  const [draftPeriod, setDraftPeriod] = useState(period);
 
-  async function handleToggle() {
-    const newValue = isCompleted ? 0 : 1;
-
-    try {
-      await updateTask(task.id, {
-        isCompleted: newValue,
-      });
-
-      setIsCompleted(newValue === 1);
-      if (newValue === 1) {
-        onCompleteTask(task.id);
-      }
-    } catch (error) {
-      console.error(error);
+  function handleToggle() {
+    if (isCompleted) {
+      onRestoreTask?.(task.id);
+    } else {
+      onCompleteTask(task.id);
     }
   }
 
   async function handlePeriodChange(event) {
     const nextPeriod = event.target.value;
-    const cleanTitle = title.trim();
+    setDraftPeriod(nextPeriod);
+    const cleanTitle = draftTitle.trim();
     const updates = { period: nextPeriod };
 
     if (cleanTitle) {
@@ -43,49 +31,36 @@ function TaskItem({ task, onDeleteTask, onCompleteTask, onUpdateTask }) {
     const updatedTask = await onUpdateTask(task.id, updates);
 
     if (updatedTask) {
-      setTitle(updatedTask.title);
-      setPeriod(updatedTask.period);
       setIsEditing(false);
     }
   }
 
   async function handleEdit() {
     if (!isEditing) {
-      setPeriod(task.period || "morning");
-      setTitle(task.title);
+      setDraftPeriod(period);
+      setDraftTitle(task.title);
       setIsEditing(true);
       return;
     }
 
-    const cleanTitle = title.trim();
+    const cleanTitle = draftTitle.trim();
 
     if (!cleanTitle) {
       return;
     }
 
-    try {
-      const updatedTask = await onUpdateTask(task.id, {
-        title: cleanTitle,
-        period,
-      });
+    const updatedTask = await onUpdateTask(task.id, {
+      title: cleanTitle,
+      period: draftPeriod,
+    });
 
-      if (updatedTask) {
-        setTitle(updatedTask.title);
-        setPeriod(updatedTask.period);
-        setIsEditing(false);
-      }
-    } catch (error) {
-      console.error(error);
+    if (updatedTask) {
+      setIsEditing(false);
     }
   }
 
-  async function handleDelete() {
-    try {
-      await deleteTask(task.id);
-      onDeleteTask(task.id);
-    } catch (error) {
-      console.error(error);
-    }
+  function handleDelete() {
+    onDeleteTask(task.id);
   }
 
   return (
@@ -103,11 +78,11 @@ function TaskItem({ task, onDeleteTask, onCompleteTask, onUpdateTask }) {
           <input
             className="task-edit-input"
             type="text"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            value={draftTitle}
+            onChange={(event) => setDraftTitle(event.target.value)}
           />
         ) : (
-          <span className="task-title">{title}</span>
+          <span className="task-title">{task.title}</span>
         )}
       </div>
       <span className={`task-badge task-badge-${task.category?.toLowerCase() || "default"}`}>
@@ -128,7 +103,7 @@ function TaskItem({ task, onDeleteTask, onCompleteTask, onUpdateTask }) {
         {isEditing && (
           <select
             aria-label="Day part"
-            value={period}
+            value={draftPeriod}
             onChange={handlePeriodChange}
           >
             <option value="morning">Morning</option>
