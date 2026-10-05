@@ -12,10 +12,11 @@ export async function createTask(task) {
   const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   
   const newTask = {
-    id: Date.now(), // Generate a unique numeric ID
+    id: crypto.randomUUID(), // Generate a unique numeric ID
     title: task.title,
     isCompleted: 0,
     isToday: false,
+    completedAt: null, // new
     period: task.period || "morning", // defaults to morning
     category: task.category || "Personal",
     duration: task.duration || 30,

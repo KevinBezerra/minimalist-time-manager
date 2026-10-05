@@ -1,0 +1,36 @@
+.tasks-toolbar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+.tasks-toolbar select {
+  padding: 8px 12px;
+  border: 1px solid #d5dde5;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: #fff;
+  cursor: pointer;
+}
+.tasks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e8ecf1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.tasks-list-item + .tasks-list-item {
+  border-top: 1px solid #eef1f5;
+}
+
+@media (max-width: 560px) {
+  /* Both filters go full width instead of being squeezed into one line */
+  .tasks-toolbar {
+    flex-direction: column;
+  }
+
+  .tasks-toolbar select {
+    width: 100%;
+  }
+}

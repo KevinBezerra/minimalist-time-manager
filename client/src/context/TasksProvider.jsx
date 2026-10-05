@@ -5,14 +5,13 @@ import {
   deleteTask,
   getTasks,
   updateTask,
-} from "../../services/taskApi";
+} from "../services/taskApi";
 
 export default function TasksProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ═══ 2. initial load ═══
   useEffect(() => {
     let isCurrent = true;
 
@@ -64,7 +63,6 @@ export default function TasksProvider({ children }) {
     }
   }
 
-  //  handleUpdateTask.
   async function editTask(taskId, updates) {
     try {
       const updatedTask = await updateTask(taskId, updates);
@@ -81,13 +79,11 @@ export default function TasksProvider({ children }) {
     }
   }
 
-  // ─── update 2: now it remove from localStorage ───
   async function removeTask(taskId) {
     setTasks((current) => current.filter((task) => task.id !== taskId));
     await deleteTask(taskId);
   }
 
-  // ─── update 3: replaces  handleCompleteTask ───
   async function toggleTask(taskId) {
     const target = tasks.find((task) => task.id === taskId);
     if (!target) return;

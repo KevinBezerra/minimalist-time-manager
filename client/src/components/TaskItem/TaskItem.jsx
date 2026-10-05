@@ -1,149 +1,221 @@
-import { useState } from "react";
-import {
-  deleteTask,
-  updateTask,
-} from "../../services/taskApi";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useTasks } from "../../context/TasksContext";
 import "./TaskItem.css";
 
+const PERIODS = ["morning", "afternoon", "evening"];
 
-function TaskItem({ task, onDeleteTask, onCompleteTask, onUpdateTask }) {
-  const [isCompleted, setIsCompleted] = useState(
-    task.isCompleted === 1
-  );
-  const [period, setPeriod] = useState(task.period || "morning");
+function formatDuration(minutes) {
+  const total = Number(minutes) || 0;
+  if (total < 60) return `${total} min`;
+  const rest = total % 60;
+  return rest === 0 ? `${total / 60} h` : `${total / 60} h ${rest} min`;
+}
+
+function TaskItem({ task }) {
+  const { toggleTask, removeTask, editTask } = useTasks();
+  const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+
+
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(null);
+  // floating dropdown menu coordinates (top, left) for positioning the menu
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
 
-  async function handleToggle() {
-    const newValue = isCompleted ? 0 : 1;
 
-    try {
-      await updateTask(task.id, {
-        isCompleted: newValue,
+  const isCompleted = task.isCompleted === 1;
+
+  const isEditingTitle = isEditing && draftTitle !== null;
+  const title = draftTitle ?? task.title;
+
+  const handleToggleMenu = () => {
+    if (!isMenuOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setMenuCoords({
+        top: rect.bottom + window.scrollY + 6,
+        left: rect.left + window.scrollX - 160, // align menu to the right of the trigger
       });
+    }
+    setIsMenuOpen((open) => !open);
+  }
 
-      setIsCompleted(newValue === 1);
-      if (newValue === 1) {
-        onCompleteTask(task.id);
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    function handleOutside(event) {
+
+      const menuElement = document.getElementById(`portal-menu-${task.id}`);
+
+      if (menuRef.current && !menuRef.current.contains(event.target) ||
+        (menuElement && !menuElement.contains(event.target))) {
+        return;
       }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function handlePeriodChange(event) {
-    const nextPeriod = event.target.value;
-    const cleanTitle = title.trim();
-    const updates = { period: nextPeriod };
-
-    if (cleanTitle) {
-      updates.title = cleanTitle;
+      setIsMenuOpen(false);
     }
 
-    const updatedTask = await onUpdateTask(task.id, updates);
-
-    if (updatedTask) {
-      setTitle(updatedTask.title);
-      setPeriod(updatedTask.period);
-      setIsEditing(false);
-    }
-  }
-
-  async function handleEdit() {
-    if (!isEditing) {
-      setPeriod(task.period || "morning");
-      setTitle(task.title);
-      setIsEditing(true);
-      return;
-    }
-
-    const cleanTitle = title.trim();
-
-    if (!cleanTitle) {
-      return;
-    }
-
-    try {
-      const updatedTask = await onUpdateTask(task.id, {
-        title: cleanTitle,
-        period,
-      });
-
-      if (updatedTask) {
-        setTitle(updatedTask.title);
-        setPeriod(updatedTask.period);
-        setIsEditing(false);
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
       }
-    } catch (error) {
-      console.error(error);
     }
+
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMenuOpen]);
+
+  function handleCancel() {
+    setDraftTitle(null);
+    setIsEditing(false);
   }
 
-  async function handleDelete() {
-    try {
-      await deleteTask(task.id);
-      onDeleteTask(task.id);
-    } catch (error) {
-      console.error(error);
-    }
+  async function handleSave() {
+    const clean = (draftTitle ?? "").trim();
+    if (!clean) return;
+
+    const updated = await editTask(task.id, { title: clean });
+    if (updated) handleCancel();
   }
 
   return (
     <div className={`task-row ${isCompleted ? "completed" : ""}`}>
       <button
+        type="button"
         className={`task-checkbox ${isCompleted ? "checked" : ""}`}
-        onClick={handleToggle}
+        onClick={() => toggleTask(task.id)}
         aria-label="Toggle task"
-        >
-          {isCompleted && <span className="checkMark">✓</span>}
+      >
+        {isCompleted && (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        )}
       </button>
 
       <div className="task-content">
-        {isEditing ? (
+        {isEditingTitle ? (
           <input
             className="task-edit-input"
             type="text"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            autoFocus
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSave();
+              if (e.key === "Escape") handleCancel();
+            }}
           />
         ) : (
-          <span className="task-title">{title}</span>
+          <span className="task-title">{task.title}</span>
         )}
       </div>
-      <span className={`task-badge task-badge-${task.category?.toLowerCase() || "default"}`}>
+
+      <span className={`task-badge task-badge-${(task.category || "personal").toLowerCase()}`}>
         {task.category || "Personal"}
       </span>
 
-      <span className="task-duration">
-        {task.duration ? `${task.duration} min` : ""}
-      </span>
+      <span className="task-duration">{formatDuration(task.duration)}</span>
 
-      {!isEditing && (
-        <span className="task-duration">
-          {period.charAt(0).toUpperCase() + period.slice(1)}
-        </span>
-      )}
+      <div className="task-actions" ref={menuRef}>
+        {isEditing ? (
+          <>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={handleSave}
+              disabled={!draftTitle?.trim()}
+            >
+              Save
+            </button>
+            <button type="button" className="btn-ghost" onClick={handleCancel}>
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              ref={triggerRef}
+              type="button"
+              className="icon-button"
+              aria-label="Opciones"
+              aria-expanded={isMenuOpen}
+              onClick={handleToggleMenu}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="5" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="19" cy="12" r="1.8" />
+              </svg>
+            </button>
 
-      <div className="task-actions">
-        {isEditing && (
-          <select
-            aria-label="Day part"
-            value={period}
-            onChange={handlePeriodChange}
-          >
-            <option value="morning">Morning</option>
-            <option value="afternoon">Afternoon</option>
-            <option value="evening">Evening</option>
-          </select>
+            {}
+            {isMenuOpen && createPortal(
+              <div 
+                id={`portal-menu-${task.id}`}
+                className="task-menu"
+                style={{
+                  position: "absolute",
+                  top: `${menuCoords.top}px`,
+                  left: `${menuCoords.left}px`,
+                  zIndex: 9999 
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setDraftTitle(task.title);
+                    setIsEditing(true);
+                  }}
+                >
+                  Edit
+                </button>
+
+                <div className="task-menu-divider">Move to</div>
+                {PERIODS.map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    disabled={task.period === period}
+                    onClick={async () => {
+                      setIsMenuOpen(false);
+                      await editTask(task.id, { period });
+                    }}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </button>
+                ))}
+
+                <div className="task-menu-divider" />
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={async () => {
+                    setIsMenuOpen(false);
+                    await removeTask(task.id);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>,
+              document.body
+            )}
+          </>
         )}
-
-        <button type="button" onClick={handleEdit}>
-          {isEditing ? "Save" : "Edit"}
-        </button>
-
-        <button type="button" onClick={handleDelete}>
-          Delete
-        </button>
       </div>
     </div>
   );
