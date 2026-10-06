@@ -1,5 +1,5 @@
 import "./Sidebar.css";
-export default function Sidebar() {
+export default function Sidebar({ onCompletedClick }) {
     return (
         <aside className="sidebar">
             {/* Our logo block */}
@@ -25,10 +25,14 @@ export default function Sidebar() {
                     <span className="nav-icon">⏱</span>
                     <span>Pomodoro</span>
                 </a>
-                <a href="#" className="nav-item">
+                <button
+                    type="button"
+                    className="nav-item"
+                    onClick={onCompletedClick}
+                >
                     <span className="nav-icon">✓</span>
                     <span>Completed</span>
-                </a>
+                </button>
                 <a href="#" className="nav-item">
                     <span className="nav-icon">🏷</span>
                     <span>Categories</span>
