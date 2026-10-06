@@ -1,18 +1,23 @@
 import TaskGroup from "./components/TaskGroup";
 import Sidebar from "./components/Sidebar";
 import AddTaskForm from "./components/AddTaskForm";
+import CompletedTasks from "./components/CompletedTasks";
 import { TasksProvider, useTasks } from "./context/TasksContext";
 import "./App.css"
+import { useState } from "react";
 
 function TodayView() {
   const {
     activeTasks,
+    completedTasks,
     error,
     addTask,
     updateTask,
     deleteTask,
     completeTask,
+    restoreTask,
   } = useTasks();
+  const [currentView, setCurrentView] = useState("today");
 
   async function handleAddTask(taskInput) {
     const newTask = await addTask({
@@ -27,7 +32,7 @@ function TodayView() {
 
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar onCompletedClick={() => setCurrentView("completed")} />
       <main className="app-main">
         <header className="app-header">
           <div>
@@ -39,34 +44,44 @@ function TodayView() {
           <AddTaskForm onAddTask={handleAddTask} />
           {error && <p className="error-text">{error}</p>}
 
-          <div className="today-groups">
-            <TaskGroup
-              title="Morning"
-              icon="☀"
-              tasks={activeTasks.filter((task) => task.period === "morning")}
-              onDeleteTask={deleteTask}
-              onCompleteTask={completeTask}
-              onUpdateTask={updateTask}
-            />
-            <TaskGroup
-              title="Afternoon"
-              icon="☀"
-              tasks={activeTasks.filter((task) => task.period === "afternoon")}
-              onDeleteTask={deleteTask}
-              onCompleteTask={completeTask}
-              onUpdateTask={updateTask}
-            />
-            <TaskGroup
-              title="Evening"
-              icon="☾"
-              tasks={activeTasks.filter((task) => task.period === "evening")}
-              onDeleteTask={deleteTask}
-              onCompleteTask={completeTask}
-              onUpdateTask={updateTask}
-            />
-          </div>
-        </section>
+          {currentView === "today" ? (
+            <div className="today-groups">
+          <TaskGroup
+            title="Morning"
+            icon="☀"
+            tasks={activeTasks.filter((task) => task.period === "morning")}
+            onDeleteTask={deleteTask}
+            onCompleteTask={completeTask}
+            onUpdateTask={updateTask}
+          />
 
+          <TaskGroup
+            title="Afternoon"
+            icon="☀"
+            tasks={activeTasks.filter((task) => task.period === "afternoon")}
+            onDeleteTask={deleteTask}
+            onCompleteTask={completeTask}
+            onUpdateTask={updateTask}
+          />
+
+          <TaskGroup
+            title="Evening"
+            icon="☾"
+            tasks={activeTasks.filter((task) => task.period === "evening")}
+            onDeleteTask={deleteTask}
+            onCompleteTask={completeTask}
+            onUpdateTask={updateTask}
+          />
+        </div>
+      ) : (
+        <CompletedTasks
+          tasks={completedTasks}
+          onRestoreTask={restoreTask}
+          onDeleteTask={deleteTask}
+          onUpdateTask={updateTask}
+        />
+      )}
+        </section>
       </main>
     </div>
   );
