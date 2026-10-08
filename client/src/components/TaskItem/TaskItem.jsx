@@ -3,7 +3,7 @@ import "./TaskItem.css";
 
 // Displays one task. The task itself comes from the shared tasks state (props);
 // only the in-progress edit (draft title and day part) lives here.
-function TaskItem({ task, onDeleteTask, onCompleteTask, onRestoreTask, onUpdateTask }) {
+function TaskItem({ task, onDeleteTask, onCompleteTask, onRestoreTask, onUpdateTask, onUnassignTask, }) {
   const isCompleted = task.isCompleted === 1;
   const period = task.period || "morning";
   const [isEditing, setIsEditing] = useState(false);
@@ -63,6 +63,11 @@ function TaskItem({ task, onDeleteTask, onCompleteTask, onRestoreTask, onUpdateT
     onDeleteTask(task.id);
   }
 
+  function handleUnassign() {
+    onUnassignTask(task.id);
+  }
+
+
   return (
     <div className={`task-row ${isCompleted ? "completed" : ""}`}>
       <button
@@ -114,6 +119,10 @@ function TaskItem({ task, onDeleteTask, onCompleteTask, onRestoreTask, onUpdateT
 
         <button type="button" onClick={handleEdit}>
           {isEditing ? "Save" : "Edit"}
+        </button>
+
+        <button type="button" onClick={handleUnassign}>
+          Unassign
         </button>
 
         <button type="button" onClick={handleDelete}>

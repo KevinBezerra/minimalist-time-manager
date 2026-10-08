@@ -51,6 +51,8 @@ export function TasksProvider({ children }) {
         run(() => updateTask(id, { isCompleted: 1 }), "Could not complete task."),
       restoreTask: (id) =>
         run(() => updateTask(id, { isCompleted: 0 }), "Could not restore task."),
+      unassignTask: (id) =>
+        run(() => updateTask(id, { period: null }), "Could not unassign task."),
     }),
     [run]
   );
