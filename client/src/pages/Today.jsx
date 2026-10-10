@@ -3,7 +3,7 @@ import AddTaskForm from "../components/AddTaskForm";
 import { useTasks } from "../context/TasksContext";
 
 export default function Today() {
-  const { tasksByPeriod, loading, error, addTask } = useTasks();
+  const { tasksByPeriod, error, addTask } = useTasks();
 
   return (
     <>
@@ -17,27 +17,23 @@ export default function Today() {
 
       {error && <p className="error-text">{error}</p>}
 
-      {loading ? (
-        <p className="muted-text">Loading…</p>
-      ) : (
-        <div className="groups">
-          <TaskGroup
-            title="Morning"
-            icon="☀"
-            tasks={tasksByPeriod.morning}
-          />
-          <TaskGroup
-            title="Afternoon"
-            icon="☀"
-            tasks={tasksByPeriod.afternoon}
-          />
-          <TaskGroup
-            title="Evening"
-            icon="☾"
-            tasks={tasksByPeriod.evening}
-          />
-        </div>
-      )}
+      <div className="groups">
+        <TaskGroup
+          title="Morning"
+          icon="☀"
+          tasks={tasksByPeriod.morning}
+        />
+        <TaskGroup
+          title="Afternoon"
+          icon="☀"
+          tasks={tasksByPeriod.afternoon}
+        />
+        <TaskGroup
+          title="Evening"
+          icon="☾"
+          tasks={tasksByPeriod.evening}
+        />
+      </div>
     </>
   );
 }

@@ -8,7 +8,7 @@ const CATEGORY_OPTIONS = ["All Categories", "Personal", "Work", "Health"];
 const STATUS_OPTIONS = ["All Status", "Pending", "Completed"];
 
 export default function Tasks() {
-  const { tasks, loading, error, addTask } = useTasks();
+  const { tasks, error, addTask } = useTasks();
   const [category, setCategory] = useState("All Categories");
   const [status, setStatus] = useState("All Status");
 
@@ -67,9 +67,7 @@ export default function Tasks() {
         </select>
       </div>
 
-      {loading ? (
-        <p className="muted-text">Loading…</p>
-      ) : visible.length === 0 ? (
+      {visible.length === 0 ? (
         <p className="muted-text">No tasks match these filters.</p>
       ) : (
         <ul className="tasks-list">

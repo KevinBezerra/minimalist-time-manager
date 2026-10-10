@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Pomodoro.css";
 
+// Labels and colors only; durations always come from the user's settings.
 const MODES = {
-  focus: { id: "focus", label: "Focus", minutes: 25, color: "teal" },
-  short: { id: "short", label: "Short Break", minutes: 5, color: "orange" },
-  long: { id: "long", label: "Long Break", minutes: 15, color: "navy" },
+  focus: { id: "focus", label: "Focus", color: "teal" },
+  short: { id: "short", label: "Short Break", color: "orange" },
+  long: { id: "long", label: "Long Break", color: "navy" },
 };
 
 const SETTINGS_KEY = "pomodoro-settings";
+const TIMER_KEY = "pomodoro-timer";
 const FOCUS_COUNT_KEY = "pomodoro-focus-count";
 const DEFAULT_SETTINGS = { focus: 25, short: 5, long: 15 };
 
@@ -23,6 +25,25 @@ function loadSettings() {
   }
 }
 
+// The timer is stored as an end timestamp (while running) or the time left
+// (while paused), so it keeps counting while this page is not mounted.
+function idleTimer(modeId, settings) {
+  return { modeId, running: false, endAt: null, remainingMs: settings[modeId] * 60000 };
+}
+
+function loadTimer(settings) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TIMER_KEY));
+    if (saved && MODES[saved.modeId]) {
+      if (saved.running && Number.isFinite(saved.endAt)) return saved;
+      if (Number.isFinite(saved.remainingMs)) return { ...saved, running: false, endAt: null };
+    }
+  } catch {
+    // fall through to a fresh timer
+  }
+  return idleTimer("focus", settings);
+}
+
 function format(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -31,82 +52,99 @@ function format(totalSeconds) {
 
 export default function Pomodoro() {
   const [settings, setSettings] = useState(loadSettings);
-  const [modeId, setModeId] = useState("focus");
-  const [secondsLeft, setSecondsLeft] = useState(
-    DEFAULT_SETTINGS.focus * 60,
-  );
-  const [isRunning, setIsRunning] = useState(false);
+  const [timer, setTimer] = useState(() => loadTimer(loadSettings()));
+  const [now, setNow] = useState(() => Date.now());
   const [focusCount, setFocusCount] = useState(
     () => Number(localStorage.getItem(FOCUS_COUNT_KEY)) || 0,
   );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Text being typed in the settings inputs, so a field can be emptied while
+  // typing a new value. Only valid numbers are applied to the settings.
+  const [drafts, setDrafts] = useState({});
+  const handledEndRef = useRef(null);
 
-  const modeRef = useRef(modeId);
-  const settingsRef = useRef(settings);
+  const { modeId, running } = timer;
+  const currentMode = MODES[modeId];
+  const totalSeconds = settings[modeId] * 60;
+  const msLeft = Math.max(0, running ? timer.endAt - now : timer.remainingMs);
+  const secondsLeft = Math.ceil(msLeft / 1000);
+  const progress = Math.min(1, Math.max(0, (totalSeconds - secondsLeft) / totalSeconds));
 
   useEffect(() => {
-    modeRef.current = modeId;
-  }, [modeId]);
-
-  useEffect(() => {
-    settingsRef.current = settings;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
 
-  const currentMode = MODES[modeId];
-  const totalSeconds = currentMode.minutes * 60;
-  const progress = totalSeconds === 0 ? 0 : (totalSeconds - secondsLeft) / totalSeconds;
-
-  const handleModeChange = useCallback((newId) => {
-    setModeId(newId);
-    setSecondsLeft(MODES[newId].minutes * 60);
-    setIsRunning(false);
-  }, []);
+  useEffect(() => {
+    localStorage.setItem(TIMER_KEY, JSON.stringify(timer));
+  }, [timer]);
 
   useEffect(() => {
-    if (!isRunning) return;
-
-    const id = setInterval(() => {
-      setSecondsLeft((previous) => previous - 1);
-    }, 1000);
-
+    if (!running) return;
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [isRunning]);
+  }, [running]);
 
+  // Fires when a running timer reaches zero and moves on to the next mode.
   useEffect(() => {
-    if (secondsLeft > 0) return;
+    if (!running) return;
 
-    if (modeRef.current === "focus") {
-      const nextCount = focusCount + 1;
-      setFocusCount(nextCount);
-      localStorage.setItem(FOCUS_COUNT_KEY, String(nextCount));
+    const id = setTimeout(() => {
+      if (handledEndRef.current === timer.endAt) return;
+      handledEndRef.current = timer.endAt;
 
-      const nextMode = nextCount % 4 === 0 ? "long" : "short";
-      setModeId(nextMode);
-      setSecondsLeft(MODES[nextMode].minutes * 60);
+      let nextMode = "focus";
+      if (modeId === "focus") {
+        const nextCount = focusCount + 1;
+        setFocusCount(nextCount);
+        localStorage.setItem(FOCUS_COUNT_KEY, String(nextCount));
+        nextMode = nextCount % 4 === 0 ? "long" : "short";
+      }
+      setTimer(idleTimer(nextMode, settings));
+    }, Math.max(0, timer.endAt - Date.now()));
+
+    return () => clearTimeout(id);
+  }, [running, timer.endAt, modeId, focusCount, settings]);
+
+  function handleModeChange(newId) {
+    setTimer(idleTimer(newId, settings));
+  }
+
+  function handleStartPause() {
+    if (running) {
+      setTimer({ ...timer, running: false, endAt: null, remainingMs: msLeft });
     } else {
-      setModeId("focus");
-      setSecondsLeft(settingsRef.current.focus * 60);
+      const start = Date.now();
+      setNow(start);
+      setTimer({ ...timer, running: true, endAt: start + timer.remainingMs });
     }
-
-    setIsRunning(false);
-  }, [secondsLeft, focusCount]);
+  }
 
   function handleReset() {
-    setIsRunning(false);
-    setSecondsLeft(currentMode.minutes * 60);
+    setTimer(idleTimer(modeId, settings));
   }
 
   function handleSettingChange(key, value) {
-    const minutes = Number(value);
-    if (Number.isNaN(minutes) || minutes < 1) return;
+    setDrafts((previous) => ({ ...previous, [key]: value }));
 
-    setSettings((previous) => ({ ...previous, [key]: minutes }));
+    const minutes = Number(value);
+    if (value === "" || !Number.isInteger(minutes) || minutes < 1 || minutes > 180) return;
+
+    const nextSettings = { ...settings, [key]: minutes };
+    setSettings(nextSettings);
 
     if (key === modeId) {
-      setSecondsLeft(minutes * 60);
-      setIsRunning(false);
+      setTimer(idleTimer(modeId, nextSettings));
     }
+  }
+
+  function handleSettingBlur(key) {
+    setDrafts((previous) => ({ ...previous, [key]: undefined }));
+  }
+
+  function handleResetSettings() {
+    setDrafts({});
+    setSettings(DEFAULT_SETTINGS);
+    setTimer(idleTimer("focus", DEFAULT_SETTINGS));
   }
 
   return (
@@ -147,8 +185,9 @@ export default function Pomodoro() {
                 type="number"
                 min="1"
                 max="180"
-                value={settings[key]}
+                value={drafts[key] ?? settings[key]}
                 onChange={(event) => handleSettingChange(key, event.target.value)}
+                onBlur={() => handleSettingBlur(key)}
               />
             </label>
           ))}
@@ -156,11 +195,7 @@ export default function Pomodoro() {
           <button
             type="button"
             className="btn-ghost"
-            onClick={() => {
-              setSettings(DEFAULT_SETTINGS);
-              setIsRunning(false);
-              setSecondsLeft(DEFAULT_SETTINGS.focus * 60);
-            }}
+            onClick={handleResetSettings}
           >
             Reset to defaults
           </button>
@@ -201,14 +236,14 @@ export default function Pomodoro() {
               <button
                 type="button"
                 className="btn-primary btn-start"
-                onClick={() => setIsRunning((running) => !running)}
+                onClick={handleStartPause}
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   aria-hidden="true"
                 >
-                  {isRunning ? (
+                  {running ? (
                     <>
                       <rect x="6" y="5" width="4" height="14" rx="1" />
                       <rect x="14" y="5" width="4" height="14" rx="1" />
@@ -217,7 +252,7 @@ export default function Pomodoro() {
                     <path d="M7 4.5v15l13-7.5z" />
                   )}
                 </svg>
-                {isRunning ? "Pause" : "Start"}
+                {running ? "Pause" : "Start"}
               </button>
               <button type="button" className="btn-outline" onClick={handleReset}>
                 Reset

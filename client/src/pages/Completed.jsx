@@ -22,7 +22,7 @@ function timeAgo(isoString) {
 }
 
 export default function Completed() {
-  const { completedTasks, loading } = useTasks();
+  const { completedTasks } = useTasks();
 
   const sorted = useMemo(
     () =>
@@ -41,9 +41,7 @@ export default function Completed() {
         </div>
       </header>
 
-      {loading ? (
-        <p className="muted-text">Loading…</p>
-      ) : sorted.length === 0 ? (
+      {sorted.length === 0 ? (
         <p className="muted-text">Nothing completed yet.</p>
       ) : (
         <ul className="completed-list">

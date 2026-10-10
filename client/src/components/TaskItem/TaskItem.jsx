@@ -13,7 +13,7 @@ function formatDuration(minutes) {
 }
 
 function TaskItem({ task }) {
-  const { toggleTask, removeTask, editTask } = useTasks();
+  const { toggleTask, deleteTask, updateTask } = useTasks();
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
 
@@ -47,11 +47,10 @@ function TaskItem({ task }) {
     function handleOutside(event) {
 
       const menuElement = document.getElementById(`portal-menu-${task.id}`);
+      const isInside =
+        menuRef.current?.contains(event.target) || menuElement?.contains(event.target);
 
-      if (menuRef.current && !menuRef.current.contains(event.target) ||
-        (menuElement && !menuElement.contains(event.target))) {
-        return;
-      }
+      if (isInside) return;
       setIsMenuOpen(false);
     }
 
@@ -68,7 +67,7 @@ function TaskItem({ task }) {
       document.removeEventListener("mousedown", handleOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, task.id]);
 
   function handleCancel() {
     setDraftTitle(null);
@@ -79,7 +78,7 @@ function TaskItem({ task }) {
     const clean = (draftTitle ?? "").trim();
     if (!clean) return;
 
-    const updated = await editTask(task.id, { title: clean });
+    const updated = await updateTask(task.id, { title: clean });
     if (updated) handleCancel();
   }
 
@@ -151,7 +150,7 @@ function TaskItem({ task }) {
               ref={triggerRef}
               type="button"
               className="icon-button"
-              aria-label="Opciones"
+              aria-label="Options"
               aria-expanded={isMenuOpen}
               onClick={handleToggleMenu}
             >
@@ -162,7 +161,6 @@ function TaskItem({ task }) {
               </svg>
             </button>
 
-            {}
             {isMenuOpen && createPortal(
               <div 
                 id={`portal-menu-${task.id}`}
@@ -193,7 +191,7 @@ function TaskItem({ task }) {
                     disabled={task.period === period}
                     onClick={async () => {
                       setIsMenuOpen(false);
-                      await editTask(task.id, { period });
+                      await updateTask(task.id, { period });
                     }}
                   >
                     {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -206,7 +204,7 @@ function TaskItem({ task }) {
                   className="danger"
                   onClick={async () => {
                     setIsMenuOpen(false);
-                    await removeTask(task.id);
+                    await deleteTask(task.id);
                   }}
                 >
                   Delete
