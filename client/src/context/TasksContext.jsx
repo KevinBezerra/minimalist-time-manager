@@ -48,25 +48,42 @@ export function TasksProvider({ children }) {
         run(() => updateTask(id, updates), "Could not update task."),
       deleteTask: (id) => run(() => deleteTask(id), "Could not delete task."),
       completeTask: (id) =>
-        run(() => updateTask(id, { isCompleted: 1 }), "Could not complete task."),
+        run(
+          () => updateTask(id, { isCompleted: 1, completedAt: new Date().toISOString() }),
+          "Could not complete task."
+        ),
       restoreTask: (id) =>
-        run(() => updateTask(id, { isCompleted: 0 }), "Could not restore task."),
+        run(
+          () => updateTask(id, { isCompleted: 0, completedAt: null }),
+          "Could not restore task."
+        ),
+      // Takes the task out of the Today blocks; it stays in the task list.
       unassignTask: (id) =>
         run(() => updateTask(id, { period: null }), "Could not unassign task."),
     }),
     [run]
   );
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const activeTasks = tasks.filter((task) => task.isCompleted === 0);
+    const tasksByPeriod = { morning: [], afternoon: [], evening: [] };
+    activeTasks.forEach((task) => tasksByPeriod[task.period]?.push(task));
+
+    return {
       tasks,
-      activeTasks: tasks.filter((task) => task.isCompleted === 0),
+      activeTasks,
       completedTasks: tasks.filter((task) => task.isCompleted === 1),
+      tasksByPeriod,
       error,
       ...actions,
-    }),
-    [tasks, error, actions]
-  );
+      // Flips a task between active and completed.
+      toggleTask: (id) => {
+        const task = tasks.find((t) => t.id === id);
+        if (!task) return null;
+        return task.isCompleted === 1 ? actions.restoreTask(id) : actions.completeTask(id);
+      },
+    };
+  }, [tasks, error, actions]);
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 }

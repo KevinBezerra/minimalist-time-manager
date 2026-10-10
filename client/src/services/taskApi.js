@@ -8,7 +8,9 @@ const VALID_PERIODS = ["morning", "afternoon", "evening"];
 // null when the entry is unusable (so one bad entry never breaks the app).
 function normalizeTask(raw) {
   if (!raw || typeof raw !== "object") return null;
-  if (typeof raw.id !== "number" || typeof raw.title !== "string") return null;
+  const hasValidId =
+    (typeof raw.id === "string" && raw.id !== "") || Number.isFinite(raw.id);
+  if (!hasValidId || typeof raw.title !== "string") return null;
 
   return {
     ...raw,
@@ -21,6 +23,15 @@ function normalizeTask(raw) {
           ? raw.period
           : "morning",
   };
+}
+
+// crypto.randomUUID() only exists in secure contexts (HTTPS or localhost), so
+// fall back to a timestamp plus random suffix when it is unavailable.
+function generateId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 // Synchronous read used by the context provider and by the writes below.
@@ -64,10 +75,11 @@ export async function createTask(task) {
   const tasks = readTasks();
 
   const newTask = {
-    id: Date.now(), // Generate a unique numeric ID
+    id: generateId(),
     title: task.title,
     isCompleted: 0,
     isToday: false,
+    completedAt: null,
     period: task.period || "morning", // defaults to morning
     category: task.category || "Personal",
     duration: task.duration || 30,

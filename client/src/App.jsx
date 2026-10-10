@@ -1,103 +1,27 @@
-import TaskGroup from "./components/TaskGroup";
-import Sidebar from "./components/Sidebar";
-import AddTaskForm from "./components/AddTaskForm";
-import CompletedTasks from "./components/CompletedTasks";
-import { TasksProvider, useTasks } from "./context/TasksContext";
-import "./App.css"
-import { useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "./layouts/AppLayout";
+import Today from "./pages/Today";
+import Tasks from "./pages/Tasks";
+import Pomodoro from "./pages/Pomodoro";
+import Completed from "./pages/Completed";
+import Categories from "./pages/Categories";
 
-function TodayView() {
-  const {
-    activeTasks,
-    completedTasks,
-    error,
-    addTask,
-    updateTask,
-    deleteTask,
-    completeTask,
-    restoreTask,
-    unassignTask,
-
-  } = useTasks();
-  const [currentView, setCurrentView] = useState("today");
-
-  async function handleAddTask(taskInput) {
-    const newTask = await addTask({
-      title: taskInput.title,
-      category: taskInput.category,
-      duration: taskInput.duration,
-      period: taskInput.period,
-    });
-
-    return newTask !== null;
-  }
-
-  return (
-    <div className="app-layout">
-      <Sidebar onCompletedClick={() => setCurrentView("completed")} />
-      <main className="app-main">
-        <header className="app-header">
-          <div>
-            <h1 className="app-title">Today</h1>
-            <p className="app-subtitle">Focus on what matters today.</p>
-          </div>
-        </header>
-        <section className="app-content">
-          <AddTaskForm onAddTask={handleAddTask} />
-          {error && <p className="error-text">{error}</p>}
-
-          {currentView === "today" ? (
-            <div className="today-groups">
-          <TaskGroup
-            title="Morning"
-            icon="☀"
-            tasks={activeTasks.filter((task) => task.period === "morning")}
-            onDeleteTask={deleteTask}
-            onCompleteTask={completeTask}
-            onUpdateTask={updateTask}
-            onUnassignTask={unassignTask}
-          />
-
-          <TaskGroup
-            title="Afternoon"
-            icon="☀"
-            tasks={activeTasks.filter((task) => task.period === "afternoon")}
-            onDeleteTask={deleteTask}
-            onCompleteTask={completeTask}
-            onUpdateTask={updateTask}
-            onUnassignTask={unassignTask}
-          />
-
-          <TaskGroup
-            title="Evening"
-            icon="☾"
-            tasks={activeTasks.filter((task) => task.period === "evening")}
-            onDeleteTask={deleteTask}
-            onCompleteTask={completeTask}
-            onUpdateTask={updateTask}
-            onUnassignTask={unassignTask}
-          />
-        </div>
-      ) : (
-        <CompletedTasks
-          tasks={completedTasks}
-          onRestoreTask={restoreTask}
-          onDeleteTask={deleteTask}
-          onUpdateTask={updateTask}
-        />
-      )}
-        </section>
-      </main>
-    </div>
-  );
+function NotFound() {
+  return <h1>404 — Page not found</h1>;
 }
 
-function App() {
+export default function App() {
   return (
-    <TasksProvider>
-      <TodayView />
-    </TasksProvider>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/today" element={<Today />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/pomodoro" element={<Pomodoro />} />
+        <Route path="/completed" element={<Completed />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route index element={<Navigate to="/today" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   );
 }
-
-export default App;

@@ -17,12 +17,15 @@ const {
   tasks,           // all tasks
   activeTasks,     // isCompleted === 0  (Today, main list)
   completedTasks,  // isCompleted === 1  (Completed view)
+  tasksByPeriod,   // active tasks as { morning, afternoon, evening }
   error,           // message if the last action failed, else ""
   addTask,
   updateTask,
   deleteTask,
   completeTask,
   restoreTask,
+  toggleTask,
+  unassignTask,
 } = useTasks();
 ```
 
@@ -30,17 +33,18 @@ const {
 | --- | --- | --- |
 | Add | `addTask({ title, category, duration, period })` | Creates a task |
 | Edit | `updateTask(id, { title: "New" })` | Changes any fields |
-| Unassign from Today | `updateTask(id, { isToday: false })` | Removes it from Today, keeps it in the list |
+| Unassign from Today | `unassignTask(id)` | Sets `period` to `null`: removes it from the Today blocks, keeps it in the list |
 | Change day part | `updateTask(id, { period: "evening" })` | Moves it to another block |
-| Complete | `completeTask(id)` | Moves it to Completed |
+| Complete | `completeTask(id)` | Moves it to Completed and sets `completedAt` |
 | Uncomplete | `restoreTask(id)` | Moves it back to active |
+| Toggle | `toggleTask(id)` | Completes an active task, restores a completed one |
 | Delete | `deleteTask(id)` | Removes it |
 
 ## Rules
 
 - Don't call `taskApi` or localStorage from components. Use the actions above: they save first, then refresh every view and every open tab.
 - Don't copy tasks into your own `useState`. Filter `activeTasks` or `completedTasks` while rendering instead.
-- Your component must be inside `<TasksProvider>`. `App.jsx` already wraps the app in it.
+- Your component must be inside `<TasksProvider>`. `main.jsx` already wraps the app in it.
 - If a save fails, the action returns `null` and `error` is set, so you can show a message.
 
 ## Task shape and example
@@ -48,8 +52,9 @@ const {
 Each task looks like this. Note that `isToday` is a boolean on the client.
 
 ```js
-{ id, title, isCompleted: 0 | 1, isToday: boolean,
-  period: "morning" | "afternoon" | "evening", category, duration }
+{ id (string or number), title, isCompleted: 0 | 1, isToday: boolean,
+  period: "morning" | "afternoon" | "evening" | null, category, duration,
+  completedAt: ISO string | null }
 ```
 
 Example: a view that lists only the evening tasks.
@@ -65,4 +70,4 @@ function EveningList() {
 }
 ```
 
-`App.jsx` and `TaskItem.jsx` are working examples in the repo.
+`Today.jsx` and `TaskItem.jsx` are working examples in the repo.
