@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TaskItem  from "./TaskItem/TaskItem";
 import "./TaskGroup.css";
 
-function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTask }){
+function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTask, onUnassignTask }){
     const [isOpen, setIsOpen] = useState(true);
 
     useEffect(() => {
@@ -30,6 +30,7 @@ function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTa
                             onDeleteTask={onDeleteTask}
                             onCompleteTask={onCompleteTask}
                             onUpdateTask={onUpdateTask}
+                            onUnassignTask={onUnassignTask}
                         />
                     ))}
                 </div>

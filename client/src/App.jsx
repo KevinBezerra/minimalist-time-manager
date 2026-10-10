@@ -16,6 +16,8 @@ function TodayView() {
     deleteTask,
     completeTask,
     restoreTask,
+    unassignTask,
+
   } = useTasks();
   const [currentView, setCurrentView] = useState("today");
 
@@ -53,6 +55,7 @@ function TodayView() {
             onDeleteTask={deleteTask}
             onCompleteTask={completeTask}
             onUpdateTask={updateTask}
+            onUnassignTask={unassignTask}
           />
 
           <TaskGroup
@@ -62,6 +65,7 @@ function TodayView() {
             onDeleteTask={deleteTask}
             onCompleteTask={completeTask}
             onUpdateTask={updateTask}
+            onUnassignTask={unassignTask}
           />
 
           <TaskGroup
@@ -71,6 +75,7 @@ function TodayView() {
             onDeleteTask={deleteTask}
             onCompleteTask={completeTask}
             onUpdateTask={updateTask}
+            onUnassignTask={unassignTask}
           />
         </div>
       ) : (
