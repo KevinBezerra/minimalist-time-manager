@@ -67,8 +67,8 @@ export async function createTask(task) {
     id: Date.now(), // Generate a unique numeric ID
     title: task.title,
     isCompleted: 0,
-    isToday: false,
-    period: task.period || "morning", // defaults to morning
+    isToday: Boolean(task.isToday),
+    period: task.period || null,
     category: task.category || "Personal",
     duration: task.duration || 30,
   };

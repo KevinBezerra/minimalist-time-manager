@@ -107,6 +107,7 @@
 }
 
 .task-actions {
+  position: relative;
   display: flex;
   gap: 6px;
   flex-shrink: 0;
@@ -128,4 +129,54 @@
 .task-actions select:hover {
   background: #f0f4f8;
   color: var(--text-primary);
+}
+
+.task-actions .task-menu-trigger {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 23px;
+  line-height: 1;
+}
+
+.task-actions .task-menu-trigger:hover,
+.task-actions .task-menu-trigger[aria-expanded="true"] {
+  border-color: #e8ecf1;
+  background: #f0f4f8;
+}
+
+.task-menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 140px;
+  padding: 5px;
+  border: 1px solid #e8ecf1;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  box-shadow: 0 6px 18px rgba(27, 58, 92, 0.14);
+}
+
+.task-actions .task-menu button {
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.task-actions .task-menu button:hover {
+  background: #f0f4f8;
+}
+
+.task-actions .task-menu .task-menu-delete {
+  color: #c62828;
 }

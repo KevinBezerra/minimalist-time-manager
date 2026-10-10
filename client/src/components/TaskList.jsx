@@ -1,6 +1,12 @@
 import TaskItem from "./TaskItem/TaskItem";
 
-function TaskList({ tasks, onDeleteTask, onCompleteTask }) {
+function TaskList({
+  tasks,
+  onDeleteTask,
+  onCompleteTask,
+  onUpdateTask,
+  onUnassignTask,
+}) {
   const activeTasks = tasks.filter((task) => task.isCompleted !== 1);
 
   if (activeTasks.length === 0) {
@@ -15,6 +21,8 @@ function TaskList({ tasks, onDeleteTask, onCompleteTask }) {
             task={task}
             onDeleteTask={onDeleteTask}
             onCompleteTask={onCompleteTask}
+            onUpdateTask={onUpdateTask}
+            onUnassignTask={onUnassignTask}
           />
         ))}
     </div>

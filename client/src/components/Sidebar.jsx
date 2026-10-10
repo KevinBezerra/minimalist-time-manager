@@ -1,43 +1,44 @@
 import "./Sidebar.css";
-export default function Sidebar({ onCompletedClick }) {
-    return (
-        <aside className="sidebar">
-            {/* Our logo block */}
-            <div className="sidebar-logo">
-                <div className="logo-bars">
-                    <span className="bar bar-teal"></span>
-                    <span className="bar bar-orange"></span>
-                    <span className="bar bar-navy"></span>
-                </div> 
-                <span className="logo-text">Minimalist Time Manager</span>
+export default function Sidebar({ currentView, onViewChange }) {
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-bars">
+          <span className="bar bar-teal"></span>
+          <span className="bar bar-orange"></span>
+          <span className="bar bar-navy"></span>
+        </div>
+        <span className="logo-text">Minimalist Time Manager</span>
+      </div>
 
-            </div>            {/* Navigation items */}
-            <nav className="sidebar-nav">
-                <a href="#" className="nav-item active">
-                    <span className="nav-icon">🏠</span>
-                    <span>Today</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">☰</span>
-                    <span>Tasks</span>
-                </a>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">⏱</span>
-                    <span>Pomodoro</span>
-                </a>
-                <button
-                    type="button"
-                    className="nav-item"
-                    onClick={onCompletedClick}
-                >
-                    <span className="nav-icon">✓</span>
-                    <span>Completed</span>
-                </button>
-                <a href="#" className="nav-item">
-                    <span className="nav-icon">🏷</span>
-                    <span>Categories</span>
-                </a>
-            </nav>
-        </aside>
-    );
+      <nav className="sidebar-nav" aria-label="Main navigation">
+        <button
+          type="button"
+          className={`nav-item ${currentView === "dashboard" ? "active" : ""}`}
+          aria-current={currentView === "dashboard" ? "page" : undefined}
+          onClick={() => onViewChange("dashboard")}
+        >
+          <span className="nav-icon">▦</span>
+          <span>Dashboard</span>
+        </button>
+        <button
+          type="button"
+          className={`nav-item ${currentView === "completed" ? "active" : ""}`}
+          aria-current={currentView === "completed" ? "page" : undefined}
+          onClick={() => onViewChange("completed")}
+        >
+          <span className="nav-icon">✓</span>
+          <span>Completed</span>
+        </button>
+        <button type="button" className="nav-item" disabled>
+          <span className="nav-icon">⏱</span>
+          <span>Pomodoro</span>
+        </button>
+        <button type="button" className="nav-item" disabled>
+          <span className="nav-icon">🏷</span>
+          <span>Categories</span>
+        </button>
+      </nav>
+    </aside>
+  );
 }
