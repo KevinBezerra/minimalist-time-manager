@@ -25,6 +25,7 @@ const {
   completeTask,
   restoreTask,
   toggleTask,
+  unassignTask,
 } = useTasks();
 ```
 
@@ -32,7 +33,7 @@ const {
 | --- | --- | --- |
 | Add | `addTask({ title, category, duration, period })` | Creates a task |
 | Edit | `updateTask(id, { title: "New" })` | Changes any fields |
-| Unassign from Today | `updateTask(id, { isToday: false })` | Removes it from Today, keeps it in the list |
+| Unassign from Today | `unassignTask(id)` | Sets `period` to `null`: removes it from the Today blocks, keeps it in the list |
 | Change day part | `updateTask(id, { period: "evening" })` | Moves it to another block |
 | Complete | `completeTask(id)` | Moves it to Completed and sets `completedAt` |
 | Uncomplete | `restoreTask(id)` | Moves it back to active |
@@ -52,7 +53,7 @@ Each task looks like this. Note that `isToday` is a boolean on the client.
 
 ```js
 { id (string or number), title, isCompleted: 0 | 1, isToday: boolean,
-  period: "morning" | "afternoon" | "evening", category, duration,
+  period: "morning" | "afternoon" | "evening" | null, category, duration,
   completedAt: ISO string | null }
 ```
 

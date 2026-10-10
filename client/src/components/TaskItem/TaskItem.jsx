@@ -13,7 +13,7 @@ function formatDuration(minutes) {
 }
 
 function TaskItem({ task }) {
-  const { toggleTask, deleteTask, updateTask } = useTasks();
+  const { toggleTask, deleteTask, updateTask, unassignTask } = useTasks();
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
 
@@ -199,6 +199,16 @@ function TaskItem({ task }) {
                 ))}
 
                 <div className="task-menu-divider" />
+                <button
+                  type="button"
+                  disabled={!task.period}
+                  onClick={async () => {
+                    setIsMenuOpen(false);
+                    await unassignTask(task.id);
+                  }}
+                >
+                  Unassign
+                </button>
                 <button
                   type="button"
                   className="danger"

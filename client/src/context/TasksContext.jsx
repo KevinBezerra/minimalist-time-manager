@@ -57,6 +57,9 @@ export function TasksProvider({ children }) {
           () => updateTask(id, { isCompleted: 0, completedAt: null }),
           "Could not restore task."
         ),
+      // Takes the task out of the Today blocks; it stays in the task list.
+      unassignTask: (id) =>
+        run(() => updateTask(id, { period: null }), "Could not unassign task."),
     }),
     [run]
   );

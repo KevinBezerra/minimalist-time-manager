@@ -16,7 +16,12 @@ function normalizeTask(raw) {
     ...raw,
     isCompleted: raw.isCompleted === 1 || raw.isCompleted === true ? 1 : 0,
     isToday: Boolean(raw.isToday),
-    period: VALID_PERIODS.includes(raw.period) ? raw.period : "morning",
+    period:
+      raw.period === null
+        ? null
+        : VALID_PERIODS.includes(raw.period)
+          ? raw.period
+          : "morning",
   };
 }
 
