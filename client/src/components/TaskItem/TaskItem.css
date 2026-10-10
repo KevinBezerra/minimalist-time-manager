@@ -78,6 +78,33 @@
   flex-shrink: 0;
 }
 
+.task-category-button {
+  border: 0;
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+.task-category-button:hover {
+  filter: brightness(0.96);
+}
+
+.task-category-select {
+  max-width: 140px;
+  padding: 4px 8px;
+  border: 1px solid #c5cdd6;
+  border-radius: 20px;
+  background: #ffffff;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.task-category-select:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(27, 58, 92, 0.1);
+}
+
 .task-badge-personal {
   background: var(--badge-personal-bg);
   color: var(--badge-personal-text);

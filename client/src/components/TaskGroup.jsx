@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TaskItem  from "./TaskItem/TaskItem";
 import "./TaskGroup.css";
 
-function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTask, onUnassignTask }){
+function TaskGroup({title, icon, tasks, categories, onDeleteTask, onCompleteTask, onUpdateTask, onUnassignTask }){
     const [isOpen, setIsOpen] = useState(true);
 
     useEffect(() => {
@@ -27,6 +27,7 @@ function TaskGroup({title, icon, tasks, onDeleteTask, onCompleteTask, onUpdateTa
                         <TaskItem
                             key={task.id}
                             task={task}
+                            categories={categories}
                             onDeleteTask={onDeleteTask}
                             onCompleteTask={onCompleteTask}
                             onUpdateTask={onUpdateTask}

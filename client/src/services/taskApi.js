@@ -41,6 +41,13 @@ function writeTasks(tasks) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
+export function renameTaskCategory(currentName, newName) {
+  const tasks = readTasks().map((task) =>
+    task.category === currentName ? { ...task, category: newName } : task
+  );
+  writeTasks(tasks);
+}
+
 // Calls onChange whenever another tab or window changes the stored tasks.
 // The browser only fires "storage" events in the *other* tabs, so changes made
 // in this tab are handled by the caller. Returns a function that unsubscribes.

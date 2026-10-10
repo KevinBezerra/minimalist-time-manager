@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./AddTaskForm.css";
 
 
-function AddTaskForm({ onAddTask, onCancel, onSuccess, error }) {
+function AddTaskForm({ onAddTask, onCancel, onSuccess, error, categories }) {
   const [title, setTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [duration, setDuration] = useState(30);
@@ -52,10 +52,15 @@ function AddTaskForm({ onAddTask, onCancel, onSuccess, error }) {
       </label>
       <label>
         Category
-        <select value={category} onChange={(event) => setCategory(event.target.value)}>
-          <option value="Personal">Personal</option>
-          <option value="Work">Work</option>
-          <option value="Health">Health</option>
+        <select
+          value={categories.includes(category) ? category : categories[0] || ""}
+          onChange={(event) => setCategory(event.target.value)}
+        >
+          {categories.map((categoryOption) => (
+            <option key={categoryOption} value={categoryOption}>
+              {categoryOption}
+            </option>
+          ))}
         </select>
       </label>
 

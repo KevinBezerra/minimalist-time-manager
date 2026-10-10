@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import AddTaskForm from "./components/AddTaskForm";
 import CompletedTasks from "./components/CompletedTasks";
 import TaskList from "./components/TaskList";
+import CategoriesView from "./components/CategoriesView";
 import { TasksProvider, useTasks } from "./context/TasksContext";
 import "./App.css";
 import { useEffect, useState } from "react";
@@ -11,7 +12,13 @@ function MainView() {
   const {
     activeTasks,
     completedTasks,
+    tasks,
+    categories,
     error,
+    categoryError,
+    addCategory,
+    renameCategory,
+    deleteCategory,
     addTask,
     updateTask,
     deleteTask,
@@ -53,13 +60,9 @@ function MainView() {
       <main className="app-main">
         <header className="app-header">
           <div>
-            <h1 className="app-title">
-              {currentView === "dashboard" ? "Dashboard" : "Completed"}
-            </h1>
+            <h1 className="app-title">{viewTitles[currentView]}</h1>
             <p className="app-subtitle">
-              {currentView === "dashboard"
-                ? "Plan your tasks and focus on what matters today."
-                : "Review the tasks you have completed."}
+              {viewSubtitles[currentView]}
             </p>
           </div>
         </header>
@@ -83,6 +86,7 @@ function MainView() {
                 </div>
                 <TaskList
                   tasks={activeTasks.filter((task) => !task.isToday)}
+                  categories={categories}
                   onDeleteTask={deleteTask}
                   onCompleteTask={completeTask}
                   onUpdateTask={updateTask}
@@ -101,6 +105,7 @@ function MainView() {
                     tasks={activeTasks.filter(
                       (task) => task.isToday && task.period === "morning"
                     )}
+                    categories={categories}
                     onDeleteTask={deleteTask}
                     onCompleteTask={completeTask}
                     onUpdateTask={updateTask}
@@ -112,6 +117,7 @@ function MainView() {
                     tasks={activeTasks.filter(
                       (task) => task.isToday && task.period === "afternoon"
                     )}
+                    categories={categories}
                     onDeleteTask={deleteTask}
                     onCompleteTask={completeTask}
                     onUpdateTask={updateTask}
@@ -123,6 +129,7 @@ function MainView() {
                     tasks={activeTasks.filter(
                       (task) => task.isToday && task.period === "evening"
                     )}
+                    categories={categories}
                     onDeleteTask={deleteTask}
                     onCompleteTask={completeTask}
                     onUpdateTask={updateTask}
@@ -131,12 +138,21 @@ function MainView() {
                 </div>
               </section>
             </div>
-          ) : (
+          ) : currentView === "completed" ? (
             <CompletedTasks
               tasks={completedTasks}
               onRestoreTask={restoreTask}
               onDeleteTask={deleteTask}
               onUpdateTask={updateTask}
+            />
+          ) : (
+            <CategoriesView
+              categories={categories}
+              tasks={tasks}
+              error={categoryError}
+              onAddCategory={addCategory}
+              onRenameCategory={renameCategory}
+              onDeleteCategory={deleteCategory}
             />
           )}
         </section>
@@ -175,6 +191,7 @@ function MainView() {
               onCancel={() => setIsAddTaskOpen(false)}
               onSuccess={() => setIsAddTaskOpen(false)}
               error={error}
+              categories={categories}
             />
           </section>
         </div>
@@ -182,6 +199,18 @@ function MainView() {
     </div>
   );
 }
+
+const viewTitles = {
+  dashboard: "Dashboard",
+  completed: "Completed",
+  categories: "Categories",
+};
+
+const viewSubtitles = {
+  dashboard: "Plan your tasks and focus on what matters today.",
+  completed: "Review the tasks you have completed.",
+  categories: "Manage the categories available for your tasks.",
+};
 
 function App() {
   return (

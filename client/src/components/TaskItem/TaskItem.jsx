@@ -5,6 +5,7 @@ import "./TaskItem.css";
 // only the in-progress edit (draft title and day part) lives here.
 function TaskItem({
   task,
+  categories = [],
   onDeleteTask,
   onCompleteTask,
   onRestoreTask,
@@ -14,6 +15,7 @@ function TaskItem({
   const isCompleted = task.isCompleted === 1;
   const period = task.period || "";
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState(task.title);
   const [draftPeriod, setDraftPeriod] = useState(period);
@@ -73,6 +75,14 @@ function TaskItem({
     }
   }
 
+  async function handleCategoryChange(event) {
+    const category = event.target.value;
+    const updatedTask = await onUpdateTask(task.id, { category });
+    if (updatedTask) {
+      setIsEditingCategory(false);
+    }
+  }
+
   function handleStartEdit() {
     setDraftPeriod(period);
     setDraftTitle(task.title);
@@ -122,9 +132,31 @@ function TaskItem({
         )}
       </div>
       {!isEditing && (
-        <span className={`task-badge task-badge-${task.category?.toLowerCase() || "default"}`}>
-          {task.category || "Personal"}
-        </span>
+        isEditingCategory ? (
+          <select
+            className="task-category-select"
+            aria-label={`Category for ${task.title}`}
+            value={task.category || ""}
+            onChange={handleCategoryChange}
+            onBlur={() => setIsEditingCategory(false)}
+            autoFocus
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <button
+            className={`task-badge task-category-button task-badge-${task.category?.toLowerCase() || "default"}`}
+            type="button"
+            aria-label={`Change category for ${task.title}`}
+            onClick={() => setIsEditingCategory(true)}
+          >
+            {task.category || "Personal"}
+          </button>
+        )
       )}
 
       {!isEditing && task.duration && (
@@ -184,9 +216,11 @@ function TaskItem({
                     <button type="button" role="menuitem" onClick={handleStartEdit}>
                       Edit
                     </button>
-                    <button type="button" role="menuitem" onClick={handleUnassign}>
-                      Unassign
-                    </button>
+                    {task.isToday && task.period && (
+                      <button type="button" role="menuitem" onClick={handleUnassign}>
+                        Unassign
+                      </button>
+                    )}
                     <button
                       className="task-menu-delete"
                       type="button"

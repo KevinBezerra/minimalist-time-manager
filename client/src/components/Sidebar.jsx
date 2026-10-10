@@ -34,7 +34,12 @@ export default function Sidebar({ currentView, onViewChange }) {
           <span className="nav-icon">⏱</span>
           <span>Pomodoro</span>
         </button>
-        <button type="button" className="nav-item" disabled>
+        <button
+          type="button"
+          className={`nav-item ${currentView === "categories" ? "active" : ""}`}
+          aria-current={currentView === "categories" ? "page" : undefined}
+          onClick={() => onViewChange("categories")}
+        >
           <span className="nav-icon">🏷</span>
           <span>Categories</span>
         </button>

@@ -2,6 +2,7 @@ import TaskItem from "./TaskItem/TaskItem";
 
 function TaskList({
   tasks,
+  categories,
   onDeleteTask,
   onCompleteTask,
   onUpdateTask,
@@ -19,6 +20,7 @@ function TaskList({
           <TaskItem
             key={task.id}
             task={task}
+            categories={categories}
             onDeleteTask={onDeleteTask}
             onCompleteTask={onCompleteTask}
             onUpdateTask={onUpdateTask}
