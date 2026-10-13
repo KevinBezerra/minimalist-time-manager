@@ -1,5 +1,7 @@
 # Minimalist Time Manager
 
+Access the manger here: https://minimalist-time-manager-client.onrender.com
+
 A simple, lightweight application designed to help people manage their time with the minimum amount of time invested in time management.
 
 ## Features
