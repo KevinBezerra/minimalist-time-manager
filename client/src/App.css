@@ -3,6 +3,9 @@ body {
   margin: 0;
   font-family: var(--font-family);
   background: var(--bg-app);
+  /* Without this, a wide element (menu, table) causes
+     horizontal scroll on the whole document. */
+  overflow-x: hidden;
 }
 
 /* Layout */
@@ -39,7 +42,10 @@ body {
 
 /* Add Task button */
 .btn-add-task {
-  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
   border: none;
   border-radius: var(--radius-md);
   background: var(--navy);
@@ -66,4 +72,150 @@ body {
 .error-text {
   color: #d32f2f;
   font-size: 14px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.page-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.page-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.muted-text {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid #d5dde5;
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #f0f4f8;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-add-task-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 860px) {
+  .app-main {
+    padding: 64px 16px 24px;
+  }
+
+  .page-header {
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .app-main {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 560px) {
+  /* Title on top, full-width button below:
+     keeps "Pomodoro Timer" + "Settings" from colliding. */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .page-title {
+    font-size: 21px;
+  }
+
+  .add-task {
+    width: 100%;
+  }
+
+  .btn-add-task {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 16px minimum on inputs: below that, iOS zooms in on focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-main {
+    padding: 60px 12px 20px;
+  }
+
+  .page-title {
+    font-size: 19px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
 }
