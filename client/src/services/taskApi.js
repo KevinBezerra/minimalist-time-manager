@@ -1,6 +1,8 @@
 // Using localStorage fallback as per project plan
 
 export const STORAGE_KEY = "tasks";
+export const CATEGORIES_STORAGE_KEY = "task-categories";
+export const DEFAULT_CATEGORIES = ["Personal", "Work", "Health"];
 
 const VALID_PERIODS = ["morning", "afternoon", "evening"];
 
@@ -46,6 +48,133 @@ export function readTasks() {
   }
 }
 
+export function readCategories() {
+  let storedCategories = DEFAULT_CATEGORIES;
+  try {
+    const stored = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    const parsed = stored === null ? DEFAULT_CATEGORIES : JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      storedCategories = parsed.filter(
+        (category) => typeof category === "string" && category.trim(),
+      );
+    } else {
+      console.error("Could not read categories from storage: expected a list.");
+    }
+  } catch (error) {
+    console.error("Could not read categories from storage:", error);
+  }
+
+  const taskCategories = readTasks()
+    .map((task) => task.category)
+    .filter((category) => typeof category === "string" && category.trim());
+  const uniqueCategories = new Map();
+
+  [...storedCategories, ...taskCategories].forEach((category) => {
+    const clean = category.trim();
+    const key = clean.toLocaleLowerCase();
+    if (!uniqueCategories.has(key)) uniqueCategories.set(key, clean);
+  });
+
+  return Array.from(uniqueCategories.values());
+}
+
+export async function createCategory(name) {
+  const cleanName = name.trim();
+  if (!cleanName) throw new Error("Category name cannot be empty.");
+
+  const categories = readCategories();
+  if (
+    categories.some(
+      (category) => category.toLocaleLowerCase() === cleanName.toLocaleLowerCase(),
+    )
+  ) {
+    throw new Error("A category with this name already exists.");
+  }
+
+  const updatedCategories = [...categories, cleanName];
+  localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+  return cleanName;
+}
+
+export async function renameCategory(currentName, name) {
+  const cleanName = name.trim();
+  if (!cleanName) throw new Error("Category name cannot be empty.");
+
+  const categories = readCategories();
+  const currentCategory = categories.find(
+    (category) => category.toLocaleLowerCase() === currentName.toLocaleLowerCase(),
+  );
+  if (!currentCategory) throw new Error("Category no longer exists.");
+  if (
+    categories.some(
+      (category) =>
+        category.toLocaleLowerCase() !== currentCategory.toLocaleLowerCase() &&
+        category.toLocaleLowerCase() === cleanName.toLocaleLowerCase(),
+    )
+  ) {
+    throw new Error("A category with this name already exists.");
+  }
+
+  const tasks = readTasks();
+  const updatedTasks = tasks.map((task) =>
+    typeof task.category === "string" &&
+    task.category.toLocaleLowerCase() === currentCategory.toLocaleLowerCase()
+      ? { ...task, category: cleanName }
+      : task,
+  );
+  const updatedCategories = categories.map((category) =>
+    category === currentCategory ? cleanName : category,
+  );
+
+  const previousTaskStorage = localStorage.getItem(STORAGE_KEY);
+  const previousCategoryStorage = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+  try {
+    if (updatedTasks.some((task, index) => task !== tasks[index])) {
+      writeTasks(updatedTasks);
+    }
+    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+  } catch (error) {
+    try {
+      if (previousTaskStorage === null) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        localStorage.setItem(STORAGE_KEY, previousTaskStorage);
+      }
+      if (previousCategoryStorage === null) {
+        localStorage.removeItem(CATEGORIES_STORAGE_KEY);
+      } else {
+        localStorage.setItem(CATEGORIES_STORAGE_KEY, previousCategoryStorage);
+      }
+    } catch (rollbackError) {
+      console.error("Could not roll back category rename:", rollbackError);
+    }
+    throw error;
+  }
+  return cleanName;
+}
+
+export async function deleteCategory(name) {
+  const cleanName = name.trim();
+  const categories = readCategories();
+  const category = categories.find(
+    (item) => item.toLocaleLowerCase() === cleanName.toLocaleLowerCase(),
+  );
+  if (!category) throw new Error("Category no longer exists.");
+
+  const hasAssignedTasks = readTasks().some(
+    (task) =>
+      typeof task.category === "string" &&
+      task.category.toLocaleLowerCase() === category.toLocaleLowerCase(),
+  );
+  if (hasAssignedTasks) {
+    throw new Error("Reassign or remove this category's tasks before deleting it.");
+  }
+
+  const updatedCategories = categories.filter((item) => item !== category);
+  localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+  return category;
+}
+
 // Throws if the browser refuses the write (storage full or disabled), so
 // callers can report the failure instead of silently losing the change.
 function writeTasks(tasks) {
@@ -58,7 +187,11 @@ function writeTasks(tasks) {
 export function subscribeToTaskChanges(onChange) {
   function handleStorage(event) {
     // event.key is null when the whole storage area was cleared
-    if (event.key === null || event.key === STORAGE_KEY) {
+    if (
+      event.key === null ||
+      event.key === STORAGE_KEY ||
+      event.key === CATEGORIES_STORAGE_KEY
+    ) {
       onChange();
     }
   }
@@ -80,7 +213,7 @@ export async function createTask(task) {
     isCompleted: 0,
     isToday: false,
     completedAt: null,
-    period: task.period || "morning", // defaults to morning
+    period: task.period ?? null,
     category: task.category || "Personal",
     duration: task.duration || 30,
   };

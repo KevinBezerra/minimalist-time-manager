@@ -1,0 +1,67 @@
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+}
+
+.dashboard-panel {
+  min-width: 0;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid #e8ecf1;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-panel-title {
+  margin: 0;
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dashboard-task-count {
+  display: inline-flex;
+  min-width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: #f0f4f8;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashboard-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-task-list .task-row {
+  min-width: 0;
+}
+
+.dashboard-panel .muted-text {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1000px) {
+  .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
