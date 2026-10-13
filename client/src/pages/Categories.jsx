@@ -2,12 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTasks } from "../context/TasksContext";
 import "./Categories.css";
 
-const COLORS = {
-  Personal: "var(--badge-personal-bg)",
-  Work: "var(--badge-work-bg)",
-  Health: "var(--badge-health-bg)",
-};
-
 function CategoryActions({ category, onRename, onDelete }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
@@ -85,7 +79,15 @@ function CategoryActions({ category, onRename, onDelete }) {
 }
 
 export default function Categories() {
-  const { tasks, categories, addCategory, renameCategory, deleteCategory, error } =
+  const {
+    tasks,
+    categories,
+    categoryColors,
+    addCategory,
+    renameCategory,
+    deleteCategory,
+    error,
+  } =
     useTasks();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newCategory, setNewCategory] = useState("");
@@ -225,14 +227,17 @@ export default function Categories() {
               category.total === 0
                 ? 0
                 : Math.round((category.done / category.total) * 100);
-            const categoryColor = COLORS[category.name];
+            const categoryColor = categoryColors[category.name.toLocaleLowerCase()];
 
             return (
               <li key={category.name} className="category-card">
                 <div className="category-card-header">
                   <span
-                    className={`task-badge task-badge-${categoryColor ? category.name.toLowerCase() : "default"}`}
-                    style={categoryColor ? { background: categoryColor } : undefined}
+                    className="task-badge"
+                    style={{
+                      background: categoryColor?.background,
+                      color: categoryColor?.text,
+                    }}
                   >
                     {category.name}
                   </span>

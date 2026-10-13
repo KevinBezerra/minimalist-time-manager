@@ -5,6 +5,7 @@ import {
   deleteCategory as removeCategory,
   deleteTask,
   readCategories,
+  readCategoryColors,
   readTasks,
   renameCategory as updateCategoryName,
   subscribeToTaskChanges,
@@ -20,11 +21,13 @@ const TasksContext = createContext(null);
 export function TasksProvider({ children }) {
   const [tasks, setTasks] = useState(() => readTasks());
   const [categories, setCategories] = useState(() => readCategories());
+  const [categoryColors, setCategoryColors] = useState(() => readCategoryColors());
   const [error, setError] = useState("");
 
   const refresh = useCallback(() => {
     setTasks(readTasks());
     setCategories(readCategories());
+    setCategoryColors(readCategoryColors());
   }, []);
 
   // Keep this tab up to date when another tab changes the stored tasks.
@@ -91,6 +94,7 @@ export function TasksProvider({ children }) {
     return {
       tasks,
       categories,
+      categoryColors,
       activeTasks,
       completedTasks: tasks.filter((task) => task.isCompleted === 1),
       tasksByPeriod,
@@ -103,7 +107,7 @@ export function TasksProvider({ children }) {
         return task.isCompleted === 1 ? actions.restoreTask(id) : actions.completeTask(id);
       },
     };
-  }, [tasks, categories, error, actions]);
+  }, [tasks, categories, categoryColors, error, actions]);
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 }

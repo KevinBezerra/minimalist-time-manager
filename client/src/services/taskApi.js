@@ -2,9 +2,24 @@
 
 export const STORAGE_KEY = "tasks";
 export const CATEGORIES_STORAGE_KEY = "task-categories";
+export const CATEGORY_COLORS_STORAGE_KEY = "task-category-colors";
 export const DEFAULT_CATEGORIES = ["Personal", "Work", "Health"];
 
 const VALID_PERIODS = ["morning", "afternoon", "evening"];
+const DEFAULT_CATEGORY_COLORS = {
+  personal: {
+    background: "var(--badge-personal-bg)",
+    text: "var(--badge-personal-text)",
+  },
+  work: {
+    background: "var(--badge-work-bg)",
+    text: "var(--badge-work-text)",
+  },
+  health: {
+    background: "var(--badge-health-bg)",
+    text: "var(--badge-health-text)",
+  },
+};
 
 // Turns whatever was stored for one task into a well-formed task, or returns
 // null when the entry is unusable (so one bad entry never breaks the app).
@@ -78,6 +93,67 @@ export function readCategories() {
   return Array.from(uniqueCategories.values());
 }
 
+function createCategoryColor(index, usedBackgrounds) {
+  let candidateIndex = index;
+  let color;
+
+  do {
+    const cycle = Math.floor(candidateIndex / 360);
+    const hue = (candidateIndex * 137.508) % 360;
+    const saturation = 76 - (cycle % 3) * 8;
+    const lightness = 92 - (cycle % 5) * 7;
+    color = {
+      background: `hsl(${hue.toFixed(3)} ${saturation}% ${lightness}%)`,
+      text: `hsl(${hue.toFixed(3)} ${saturation}% 30%)`,
+    };
+    candidateIndex += 1;
+  } while (usedBackgrounds.has(color.background));
+
+  return color;
+}
+
+export function readCategoryColors() {
+  let storedColors = {};
+  try {
+    const stored = localStorage.getItem(CATEGORY_COLORS_STORAGE_KEY);
+    if (stored !== null) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        storedColors = parsed;
+      } else {
+        console.error("Could not read category colors from storage: expected a map.");
+      }
+    }
+  } catch (error) {
+    console.error("Could not read category colors from storage:", error);
+  }
+
+  const colors = { ...DEFAULT_CATEGORY_COLORS };
+  Object.entries(storedColors).forEach(([name, color]) => {
+    if (
+      color &&
+      typeof color.background === "string" &&
+      typeof color.text === "string"
+    ) {
+      colors[name.toLocaleLowerCase()] = color;
+    }
+  });
+
+  const usedBackgrounds = new Set(
+    Object.values(colors).map((color) => color.background),
+  );
+  readCategories().forEach((name, index) => {
+    const key = name.toLocaleLowerCase();
+    if (!colors[key]) {
+      const color = createCategoryColor(index, usedBackgrounds);
+      colors[key] = color;
+      usedBackgrounds.add(color.background);
+    }
+  });
+
+  return colors;
+}
+
 export async function createCategory(name) {
   const cleanName = name.trim();
   if (!cleanName) throw new Error("Category name cannot be empty.");
@@ -91,8 +167,20 @@ export async function createCategory(name) {
     throw new Error("A category with this name already exists.");
   }
 
+  const categoryColors = readCategoryColors();
+  const usedBackgrounds = new Set(
+    Object.values(categoryColors).map((color) => color.background),
+  );
+  const color = createCategoryColor(categories.length, usedBackgrounds);
   const updatedCategories = [...categories, cleanName];
   localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+  localStorage.setItem(
+    CATEGORY_COLORS_STORAGE_KEY,
+    JSON.stringify({
+      ...categoryColors,
+      [cleanName.toLocaleLowerCase()]: color,
+    }),
+  );
   return cleanName;
 }
 
@@ -125,14 +213,21 @@ export async function renameCategory(currentName, name) {
   const updatedCategories = categories.map((category) =>
     category === currentCategory ? cleanName : category,
   );
+  const categoryColors = readCategoryColors();
+  const currentColor = categoryColors[currentCategory.toLocaleLowerCase()];
+  const updatedColors = { ...categoryColors };
+  delete updatedColors[currentCategory.toLocaleLowerCase()];
+  updatedColors[cleanName.toLocaleLowerCase()] = currentColor;
 
   const previousTaskStorage = localStorage.getItem(STORAGE_KEY);
   const previousCategoryStorage = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+  const previousColorStorage = localStorage.getItem(CATEGORY_COLORS_STORAGE_KEY);
   try {
     if (updatedTasks.some((task, index) => task !== tasks[index])) {
       writeTasks(updatedTasks);
     }
     localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    localStorage.setItem(CATEGORY_COLORS_STORAGE_KEY, JSON.stringify(updatedColors));
   } catch (error) {
     try {
       if (previousTaskStorage === null) {
@@ -144,6 +239,11 @@ export async function renameCategory(currentName, name) {
         localStorage.removeItem(CATEGORIES_STORAGE_KEY);
       } else {
         localStorage.setItem(CATEGORIES_STORAGE_KEY, previousCategoryStorage);
+      }
+      if (previousColorStorage === null) {
+        localStorage.removeItem(CATEGORY_COLORS_STORAGE_KEY);
+      } else {
+        localStorage.setItem(CATEGORY_COLORS_STORAGE_KEY, previousColorStorage);
       }
     } catch (rollbackError) {
       console.error("Could not roll back category rename:", rollbackError);
@@ -171,7 +271,10 @@ export async function deleteCategory(name) {
   }
 
   const updatedCategories = categories.filter((item) => item !== category);
+  const updatedColors = { ...readCategoryColors() };
+  delete updatedColors[category.toLocaleLowerCase()];
   localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+  localStorage.setItem(CATEGORY_COLORS_STORAGE_KEY, JSON.stringify(updatedColors));
   return category;
 }
 
@@ -190,7 +293,8 @@ export function subscribeToTaskChanges(onChange) {
     if (
       event.key === null ||
       event.key === STORAGE_KEY ||
-      event.key === CATEGORIES_STORAGE_KEY
+      event.key === CATEGORIES_STORAGE_KEY ||
+      event.key === CATEGORY_COLORS_STORAGE_KEY
     ) {
       onChange();
     }

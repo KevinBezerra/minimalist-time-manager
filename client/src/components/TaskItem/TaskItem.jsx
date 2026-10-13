@@ -16,7 +16,15 @@ function formatDuration(minutes) {
 }
 
 function TaskItem({ task }) {
-  const { categories, toggleTask, restoreTask, deleteTask, updateTask, unassignTask } = useTasks();
+  const {
+    categories,
+    categoryColors,
+    toggleTask,
+    restoreTask,
+    deleteTask,
+    updateTask,
+    unassignTask,
+  } = useTasks();
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
 
@@ -151,7 +159,13 @@ function TaskItem({ task }) {
           ))}
         </select>
       ) : (
-        <span className={`task-badge task-badge-${(task.category || "personal").toLowerCase()}`}>
+        <span
+          className="task-badge"
+          style={{
+            background: categoryColors[(task.category || "Personal").toLocaleLowerCase()]?.background,
+            color: categoryColors[(task.category || "Personal").toLocaleLowerCase()]?.text,
+          }}
+        >
           {task.category || "Personal"}
         </span>
       )}
