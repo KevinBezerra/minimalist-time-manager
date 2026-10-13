@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./Pomodoro.css";
+import { notifyIntervalFinished, prepareAlerts } from "../services/pomodoroAlerts";
 
 // Labels and colors only; durations always come from the user's settings.
 const MODES = {
@@ -61,6 +62,8 @@ export default function Pomodoro() {
   // Text being typed in the settings inputs, so a field can be emptied while
   // typing a new value. Only valid numbers are applied to the settings.
   const [drafts, setDrafts] = useState({});
+  // Set when an interval ends; shows the banner until it is dismissed.
+  const [finished, setFinished] = useState(null);
   const handledEndRef = useRef(null);
 
   const { modeId, running } = timer;
@@ -99,13 +102,26 @@ export default function Pomodoro() {
         localStorage.setItem(FOCUS_COUNT_KEY, String(nextCount));
         nextMode = nextCount % 4 === 0 ? "long" : "short";
       }
+      notifyIntervalFinished(modeId); // chime + system notification
+      setFinished({ finishedMode: modeId, nextMode });
       setTimer(idleTimer(nextMode, settings));
     }, Math.max(0, timer.endAt - Date.now()));
 
     return () => clearTimeout(id);
   }, [running, timer.endAt, modeId, focusCount, settings]);
 
+  // Show the countdown in the browser tab title while running.
+  useEffect(() => {
+    if (!running) return;
+    const original = document.title;
+    document.title = `${format(secondsLeft)} · ${currentMode.label}`;
+    return () => {
+      document.title = original;
+    };
+  }, [running, secondsLeft, currentMode.label]);
+
   function handleModeChange(newId) {
+    setFinished(null);
     setTimer(idleTimer(newId, settings));
   }
 
@@ -113,6 +129,8 @@ export default function Pomodoro() {
     if (running) {
       setTimer({ ...timer, running: false, endAt: null, remainingMs: msLeft });
     } else {
+      prepareAlerts(); // must run inside the click so the browser allows sound
+      setFinished(null);
       const start = Date.now();
       setNow(start);
       setTimer({ ...timer, running: true, endAt: start + timer.remainingMs });
@@ -120,6 +138,7 @@ export default function Pomodoro() {
   }
 
   function handleReset() {
+    setFinished(null);
     setTimer(idleTimer(modeId, settings));
   }
 
@@ -198,6 +217,20 @@ export default function Pomodoro() {
             onClick={handleResetSettings}
           >
             Reset to defaults
+          </button>
+        </div>
+      )}
+
+      {finished && (
+        <div className="pomodoro-banner" role="status">
+          <span>
+            {finished.finishedMode === "focus"
+              ? "Focus session complete. Time for a break!"
+              : "Break is over. Ready to focus?"}{" "}
+            Up next: {MODES[finished.nextMode].label}.
+          </span>
+          <button type="button" className="btn-ghost" onClick={() => setFinished(null)}>
+            Dismiss
           </button>
         </div>
       )}
