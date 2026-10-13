@@ -1,24 +1,31 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   createTask,
+  createCategory as saveCategory,
+  deleteCategory as removeCategory,
   deleteTask,
+  readCategories,
   readTasks,
+  renameCategory as updateCategoryName,
   subscribeToTaskChanges,
   updateTask,
 } from "../services/taskApi";
 
-// Single source of truth for tasks. The Today section, the main list and the
-// completed view all read from here, so a change made in one is seen by all.
-// Every change goes through the actions below: write to storage first, then
-// refresh state from storage, so state and storage cannot drift apart.
+// Shared source of truth for tasks and categories. Every change goes through
+// the actions below: write to storage first, then refresh so state and storage
+// cannot drift apart.
 
 const TasksContext = createContext(null);
 
 export function TasksProvider({ children }) {
   const [tasks, setTasks] = useState(() => readTasks());
+  const [categories, setCategories] = useState(() => readCategories());
   const [error, setError] = useState("");
 
-  const refresh = useCallback(() => setTasks(readTasks()), []);
+  const refresh = useCallback(() => {
+    setTasks(readTasks());
+    setCategories(readCategories());
+  }, []);
 
   // Keep this tab up to date when another tab changes the stored tasks.
   useEffect(() => subscribeToTaskChanges(refresh), [refresh]);
@@ -44,6 +51,18 @@ export function TasksProvider({ children }) {
   const actions = useMemo(
     () => ({
       addTask: (input) => run(() => createTask(input), "Could not add task."),
+      addCategory: (name) =>
+        run(() => saveCategory(name), "Could not create category."),
+      renameCategory: (currentName, name) =>
+        run(
+          () => updateCategoryName(currentName, name),
+          "Could not rename category.",
+        ),
+      deleteCategory: (name) =>
+        run(
+          () => removeCategory(name),
+          "Could not delete category. Reassign its tasks first, if any.",
+        ),
       updateTask: (id, updates) =>
         run(() => updateTask(id, updates), "Could not update task."),
       deleteTask: (id) => run(() => deleteTask(id), "Could not delete task."),
@@ -71,6 +90,7 @@ export function TasksProvider({ children }) {
 
     return {
       tasks,
+      categories,
       activeTasks,
       completedTasks: tasks.filter((task) => task.isCompleted === 1),
       tasksByPeriod,
@@ -83,7 +103,7 @@ export function TasksProvider({ children }) {
         return task.isCompleted === 1 ? actions.restoreTask(id) : actions.completeTask(id);
       },
     };
-  }, [tasks, error, actions]);
+  }, [tasks, categories, error, actions]);
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 }

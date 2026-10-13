@@ -4,16 +4,19 @@ import { useTasks } from "../../context/TasksContext";
 import "./TaskItem.css";
 
 const PERIODS = ["morning", "afternoon", "evening"];
+const DURATIONS = [15, 30, 45, 60, 90, 120];
 
 function formatDuration(minutes) {
   const total = Number(minutes) || 0;
   if (total < 60) return `${total} min`;
   const rest = total % 60;
-  return rest === 0 ? `${total / 60} h` : `${total / 60} h ${rest} min`;
+  return rest === 0 || rest === 30
+    ? `${total / 60} h`
+    : `${Math.floor(total / 60)} h ${rest} min`;
 }
 
 function TaskItem({ task }) {
-  const { toggleTask, deleteTask, updateTask, unassignTask } = useTasks();
+  const { categories, toggleTask, restoreTask, deleteTask, updateTask, unassignTask } = useTasks();
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
 
@@ -21,6 +24,8 @@ function TaskItem({ task }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState(null);
+  const [draftCategory, setDraftCategory] = useState(task.category || "Personal");
+  const [draftDuration, setDraftDuration] = useState(task.duration);
   // floating dropdown menu coordinates (top, left) for positioning the menu
   const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
 
@@ -71,6 +76,8 @@ function TaskItem({ task }) {
 
   function handleCancel() {
     setDraftTitle(null);
+    setDraftCategory(task.category || "Personal");
+    setDraftDuration(task.duration);
     setIsEditing(false);
   }
 
@@ -78,7 +85,11 @@ function TaskItem({ task }) {
     const clean = (draftTitle ?? "").trim();
     if (!clean) return;
 
-    const updated = await updateTask(task.id, { title: clean });
+    const updated = await updateTask(task.id, {
+      title: clean,
+      category: draftCategory,
+      duration: Number(draftDuration),
+    });
     if (updated) handleCancel();
   }
 
@@ -123,11 +134,47 @@ function TaskItem({ task }) {
         )}
       </div>
 
-      <span className={`task-badge task-badge-${(task.category || "personal").toLowerCase()}`}>
-        {task.category || "Personal"}
-      </span>
+      {isEditing ? (
+        <select
+          className="task-edit-select task-edit-category"
+          aria-label="Task category"
+          value={draftCategory}
+          onChange={(event) => setDraftCategory(event.target.value)}
+        >
+          {!categories.includes(draftCategory) && (
+            <option value={draftCategory}>{draftCategory}</option>
+          )}
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className={`task-badge task-badge-${(task.category || "personal").toLowerCase()}`}>
+          {task.category || "Personal"}
+        </span>
+      )}
 
-      <span className="task-duration">{formatDuration(task.duration)}</span>
+      {isEditing ? (
+        <select
+          className="task-edit-select task-edit-duration"
+          aria-label="Task duration"
+          value={draftDuration}
+          onChange={(event) => setDraftDuration(Number(event.target.value))}
+        >
+          {!DURATIONS.includes(Number(draftDuration)) && (
+            <option value={draftDuration}>{formatDuration(draftDuration)}</option>
+          )}
+          {DURATIONS.map((duration) => (
+            <option key={duration} value={duration}>
+              {formatDuration(duration)}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className="task-duration">{formatDuration(task.duration)}</span>
+      )}
 
       <div className="task-actions" ref={menuRef}>
         {isEditing ? (
@@ -177,38 +224,54 @@ function TaskItem({ task }) {
                   onClick={() => {
                     setIsMenuOpen(false);
                     setDraftTitle(task.title);
+                    setDraftCategory(task.category || "Personal");
+                    setDraftDuration(task.duration);
                     setIsEditing(true);
                   }}
                 >
                   Edit
                 </button>
 
-                <div className="task-menu-divider">Move to</div>
-                {PERIODS.map((period) => (
+                {isCompleted ? (
                   <button
-                    key={period}
                     type="button"
-                    disabled={task.period === period}
                     onClick={async () => {
                       setIsMenuOpen(false);
-                      await updateTask(task.id, { period });
+                      await restoreTask(task.id);
                     }}
                   >
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                    Restore
                   </button>
-                ))}
+                ) : (
+                  <>
+                    <div className="task-menu-divider">Move to</div>
+                    {PERIODS.map((period) => (
+                      <button
+                        key={period}
+                        type="button"
+                        disabled={task.period === period}
+                        onClick={async () => {
+                          setIsMenuOpen(false);
+                          await updateTask(task.id, { period });
+                        }}
+                      >
+                        {period.charAt(0).toUpperCase() + period.slice(1)}
+                      </button>
+                    ))}
 
-                <div className="task-menu-divider" />
-                <button
-                  type="button"
-                  disabled={!task.period}
-                  onClick={async () => {
-                    setIsMenuOpen(false);
-                    await unassignTask(task.id);
-                  }}
-                >
-                  Unassign
-                </button>
+                    <div className="task-menu-divider" />
+                    <button
+                      type="button"
+                      disabled={!task.period}
+                      onClick={async () => {
+                        setIsMenuOpen(false);
+                        await unassignTask(task.id);
+                      }}
+                    >
+                      Unassign
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   className="danger"

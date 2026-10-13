@@ -2,8 +2,7 @@ import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
 const NAV_ITEMS = [
-  { to: "/today", label: "Today", icon: "home" },
-  { to: "/tasks", label: "Tasks", icon: "list" },
+  { to: "/dashboard", label: "Dashboard", icon: "home" },
   { to: "/pomodoro", label: "Pomodoro", icon: "clock" },
   { to: "/completed", label: "Completed", icon: "check" },
   { to: "/categories", label: "Categories", icon: "tag" },
@@ -14,16 +13,6 @@ const ICON_PATHS = {
     <>
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5 9.8V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.8" />
-    </>
-  ),
-  list: (
-    <>
-      <path d="M8 6h13" />
-      <path d="M8 12h13" />
-      <path d="M8 18h13" />
-      <path d="M3.5 6h.01" />
-      <path d="M3.5 12h.01" />
-      <path d="M3.5 18h.01" />
     </>
   ),
   clock: (

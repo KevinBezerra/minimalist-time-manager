@@ -69,6 +69,30 @@
   border-color: var(--navy);
 }
 
+.task-edit-select {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #c5cdd6;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-family);
+}
+
+.task-edit-select:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.task-edit-category {
+  max-width: 130px;
+}
+
+.task-edit-duration {
+  max-width: 110px;
+}
+
 .task-badge {
   padding: 4px 12px;
   border-radius: 20px;

@@ -15,11 +15,15 @@ import { useTasks } from "../context/TasksContext";
 
 const {
   tasks,           // all tasks
-  activeTasks,     // isCompleted === 0  (Today, main list)
+  categories,      // available categories, including categories without tasks
+  activeTasks,     // isCompleted === 0  (Dashboard)
   completedTasks,  // isCompleted === 1  (Completed view)
   tasksByPeriod,   // active tasks as { morning, afternoon, evening }
   error,           // message if the last action failed, else ""
   addTask,
+  addCategory,
+  renameCategory,
+  deleteCategory,
   updateTask,
   deleteTask,
   completeTask,
@@ -32,8 +36,11 @@ const {
 | Action | Call | What it does |
 | --- | --- | --- |
 | Add | `addTask({ title, category, duration, period })` | Creates a task |
+| Add category | `addCategory(name)` | Creates a persistent category available in task forms |
+| Rename category | `renameCategory(currentName, newName)` | Renames a category and updates tasks assigned to it |
+| Delete category | `deleteCategory(name)` | Deletes a category only when no tasks use it |
 | Edit | `updateTask(id, { title: "New" })` | Changes any fields |
-| Unassign from Today | `unassignTask(id)` | Sets `period` to `null`: removes it from the Today blocks, keeps it in the list |
+| Unassign from Dashboard sections | `unassignTask(id)` | Sets `period` to `null`: removes it from the day sections, keeps it in the Dashboard task list |
 | Change day part | `updateTask(id, { period: "evening" })` | Moves it to another block |
 | Complete | `completeTask(id)` | Moves it to Completed and sets `completedAt` |
 | Uncomplete | `restoreTask(id)` | Moves it back to active |
@@ -70,4 +77,4 @@ function EveningList() {
 }
 ```
 
-`Today.jsx` and `TaskItem.jsx` are working examples in the repo.
+`Dashboard.jsx` and `TaskItem.jsx` are working examples in the repo. New tasks are unassigned by default and appear in the Dashboard task list until moved to a day section.
